@@ -1,6 +1,9 @@
 package com.eduspecial
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.eduspecial.core.user.DailyGoalQuotaState
+import com.eduspecial.core.user.StudyQuotaManager
+import com.eduspecial.data.repository.AnalyticsRepository
 import com.eduspecial.data.repository.FlashcardRepository
 import com.eduspecial.domain.model.Flashcard
 import com.eduspecial.domain.model.FlashcardCategory
@@ -44,7 +47,9 @@ class StudyViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private lateinit var repository: FlashcardRepository
+    private lateinit var analyticsRepository: AnalyticsRepository
     private lateinit var recordReviewUseCase: RecordReviewUseCase
+    private lateinit var studyQuotaManager: StudyQuotaManager
     private lateinit var ttsManager: TtsManager
     private lateinit var viewModel: StudyViewModel
 
@@ -62,9 +67,22 @@ class StudyViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = mock()
+        analyticsRepository = mock()
         recordReviewUseCase = mock()
+        studyQuotaManager = mock()
         ttsManager = mock()
         whenever(ttsManager.state).thenReturn(MutableStateFlow(TtsManager.TtsState.READY))
+        runTest {
+            whenever(analyticsRepository.getTodayReviewCount()).thenReturn(0)
+            whenever(studyQuotaManager.getDailyGoalQuotaState()).thenReturn(
+                DailyGoalQuotaState(
+                    selectedGoal = 20,
+                    unlockedCap = 20,
+                    unlocksUsedToday = 0,
+                    canUnlockMore = true
+                )
+            )
+        }
     }
 
     @After
@@ -76,7 +94,9 @@ class StudyViewModelTest {
         whenever(repository.getStudyQueue()).thenReturn(flowOf(cards))
         return StudyViewModel(
             repository,
+            analyticsRepository,
             recordReviewUseCase,
+            studyQuotaManager,
             ttsManager
         )
     }
