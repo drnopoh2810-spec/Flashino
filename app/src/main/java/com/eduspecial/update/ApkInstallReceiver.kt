@@ -39,6 +39,10 @@ class ApkInstallReceiver : BroadcastReceiver() {
         val status = cursor.getInt(statusCol)
 
         if (status == DownloadManager.STATUS_SUCCESSFUL) {
+            if (!UpdateDownloadTracker.consumeIfMatches(context, downloadId)) {
+                cursor.close()
+                return
+            }
             // On Android 10+ COLUMN_LOCAL_URI returns a content:// URI directly
             // On older versions it returns a file:// URI — we need the File path
             val localUriCol = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)
@@ -50,6 +54,7 @@ class ApkInstallReceiver : BroadcastReceiver() {
             }
         } else {
             cursor.close()
+            UpdateDownloadTracker.clearIfMatches(context, downloadId)
             Log.w(TAG, "Download not successful, status=$status")
         }
     }

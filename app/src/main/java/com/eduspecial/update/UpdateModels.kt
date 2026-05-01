@@ -23,6 +23,7 @@ sealed class UpdateState {
     object Idle : UpdateState()
     object Checking : UpdateState()
     data class UpdateAvailable(val release: GitHubRelease, val apkUrl: String) : UpdateState()
+    data class PermissionRequired(val release: GitHubRelease, val apkUrl: String) : UpdateState()
     object UpToDate : UpdateState()
     data class Downloading(val progress: Int) : UpdateState()
     data class ReadyToInstall(val apkPath: String) : UpdateState()

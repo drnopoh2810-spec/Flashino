@@ -10,7 +10,7 @@ class UpdateRepository @Inject constructor(
 ) {
     companion object {
         const val GITHUB_OWNER = "drnopoh2810-spec"
-        const val GITHUB_REPO  = "EduSpecial-Android"
+        const val GITHUB_REPO  = "Flashino"
     }
 
     /**

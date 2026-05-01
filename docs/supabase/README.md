@@ -7,7 +7,7 @@ Current constraint:
 - It cannot create tables, indexes, triggers, or policies.
 
 What is included here:
-- [01_schema.sql](/C:/Users/ahmed/Desktop/mom/EduSpecial-Android/docs/supabase/01_schema.sql): base schema, indexes, and RLS policies for the Android app.
+- [01_schema.sql](01_schema.sql): base schema, indexes, and RLS policies for the Android app.
 
 Important implementation assumption:
 - The Android app already uses `term` and `definition` in its Room entities and repositories.

@@ -195,12 +195,10 @@ fun EduSpecialNavHost(prefs: UserPreferencesDataStore) {
     }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        // Update check — runs once after the user is authenticated
+        // Update check runs once after the start destination is resolved.
         val updateViewModel: UpdateViewModel = hiltViewModel()
         LaunchedEffect(startDestination) {
-            if (startDestination == Screen.Home.route) {
-                updateViewModel.checkForUpdate()
-            }
+            updateViewModel.checkForUpdate(autoInstall = true)
         }
         // Global update dialog — overlays any screen
         UpdateDialogHost(viewModel = updateViewModel)

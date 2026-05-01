@@ -27,7 +27,7 @@ object UpdateModule {
             // GitHub API requires a User-Agent header — without it returns 403
             .addInterceptor { chain ->
                 val request: Request = chain.request().newBuilder()
-                    .header("User-Agent", "EduSpecial-Android")
+                    .header("User-Agent", "Flashino-Android")
                     .header("Accept", "application/vnd.github+json")
                     .header("X-GitHub-Api-Version", "2022-11-28")
                     .build()
