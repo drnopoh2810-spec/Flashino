@@ -27,11 +27,16 @@ object UpdateModule {
             .callTimeout(45, TimeUnit.SECONDS)
             // GitHub API requires a User-Agent header — without it returns 403
             .addInterceptor { chain ->
-                val request: Request = chain.request().newBuilder()
+                val original = chain.request()
+                val builder = original.newBuilder()
                     .header("User-Agent", "Flashino-Android")
-                    .header("Accept", "application/vnd.github+json")
-                    .header("X-GitHub-Api-Version", "2022-11-28")
-                    .build()
+                    .header("Accept", "application/json")
+                if (original.url.host == "api.github.com") {
+                    builder
+                        .header("Accept", "application/vnd.github+json")
+                        .header("X-GitHub-Api-Version", "2022-11-28")
+                }
+                val request: Request = builder.build()
                 chain.proceed(request)
             }
             .build()

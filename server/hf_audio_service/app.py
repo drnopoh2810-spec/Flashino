@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from time import mktime
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 from urllib.parse import urlencode
 from wsgiref.handlers import format_date_time
 
@@ -38,6 +38,12 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 OWNER_EMAIL = os.getenv("OWNER_EMAIL", "mahmoudnabihsaleh@gmail.com").strip().lower()
 QUESTION_LIMIT = int(os.getenv("QA_FEED_QUESTION_LIMIT", "200"))
 ADMIN_USERS_PAGE_SIZE = 1000
+GITHUB_RELEASE_API_URL = os.getenv(
+    "FLASHINO_RELEASE_API_URL",
+    "https://api.github.com/repos/drnopoh2810-spec/Flashino/releases/latest",
+).strip()
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
+APP_UPDATE_CACHE_SECONDS = int(os.getenv("APP_UPDATE_CACHE_SECONDS", "60"))
 
 
 def normalize(text: str) -> str:
@@ -259,6 +265,7 @@ firebase_request = GoogleAuthRequest()
 app = FastAPI(title="EduSpecial Audio Service", version="2.0.0")
 audio_cache: dict[str, str] = {}
 identity_cache: dict[str, SupabaseIdentity] = {}
+app_update_cache: dict[str, Any] = {"expires_at": 0.0, "data": None}
 
 
 class AudioResolveRequest(BaseModel):
@@ -279,6 +286,15 @@ class HealthResponse(BaseModel):
     iflytek_accounts: int
     cloudinary_accounts: int
     supabase_configured: bool
+
+
+class AppUpdateResponse(BaseModel):
+    tag_name: str
+    version_name: str
+    version_code: int | None = None
+    apk_name: str
+    apk_url: str
+    apk_size: int | None = None
 
 
 class QaQuestionPayload(BaseModel):
@@ -346,6 +362,92 @@ class QaVoteResponse(BaseModel):
     upvotes: int
 
 
+def github_update_headers() -> dict[str, str]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "Flashino-Update-Service",
+    }
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    return headers
+
+
+def find_release_asset(release: dict[str, Any], predicate: Callable[[str], bool]) -> dict[str, Any] | None:
+    assets = release.get("assets")
+    if not isinstance(assets, list):
+        return None
+    for asset in assets:
+        if isinstance(asset, dict) and predicate(str(asset.get("name", ""))):
+            return asset
+    return None
+
+
+def normalize_update_manifest(data: dict[str, Any]) -> AppUpdateResponse:
+    version_name = str(data.get("version_name") or "").strip()
+    apk_url = str(data.get("apk_url") or "").strip()
+    if not version_name or not apk_url:
+        raise ValueError("Update manifest is missing version_name or apk_url")
+
+    tag_name = str(data.get("tag_name") or f"v{version_name}").strip()
+    apk_name = str(data.get("apk_name") or f"Flashino-v{version_name}-release.apk").strip()
+    return AppUpdateResponse(
+        tag_name=tag_name,
+        version_name=version_name,
+        version_code=data.get("version_code"),
+        apk_name=apk_name,
+        apk_url=apk_url,
+        apk_size=data.get("apk_size"),
+    )
+
+
+def update_from_release(release: dict[str, Any]) -> AppUpdateResponse:
+    apk_asset = find_release_asset(release, lambda name: name.lower().endswith(".apk"))
+    if not apk_asset:
+        raise HTTPException(status_code=404, detail="Latest release has no APK asset")
+
+    tag_name = str(release.get("tag_name") or "").strip()
+    version_name = tag_name.removeprefix("v")
+    if not version_name:
+        raise HTTPException(status_code=502, detail="Latest release has no version tag")
+
+    return AppUpdateResponse(
+        tag_name=tag_name,
+        version_name=version_name,
+        apk_name=str(apk_asset.get("name") or f"Flashino-v{version_name}-release.apk"),
+        apk_url=str(apk_asset.get("browser_download_url") or ""),
+        apk_size=apk_asset.get("size"),
+    )
+
+
+async def fetch_latest_app_update() -> AppUpdateResponse:
+    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+        release_response = await client.get(GITHUB_RELEASE_API_URL, headers=github_update_headers())
+        if release_response.status_code == 404:
+            raise HTTPException(status_code=404, detail="No published app release found")
+        if release_response.status_code >= 400:
+            raise HTTPException(
+                status_code=502,
+                detail=f"GitHub release lookup failed: HTTP {release_response.status_code}",
+            )
+
+        release = release_response.json()
+        if not isinstance(release, dict):
+            raise HTTPException(status_code=502, detail="GitHub release response is invalid")
+
+        manifest_asset = find_release_asset(release, lambda name: name == "flashino-update.json")
+        if manifest_asset and manifest_asset.get("browser_download_url"):
+            manifest_response = await client.get(
+                str(manifest_asset["browser_download_url"]),
+                headers={"Accept": "application/json", "User-Agent": "Flashino-Update-Service"},
+            )
+            if manifest_response.status_code < 400:
+                manifest = manifest_response.json()
+                if isinstance(manifest, dict):
+                    return normalize_update_manifest(manifest)
+
+        return update_from_release(release)
+
+
 async def verify_user(authorization: str | None = Header(default=None)) -> dict[str, Any] | None:
     if not REQUIRE_AUTH:
         return None
@@ -373,6 +475,18 @@ async def health() -> HealthResponse:
         cloudinary_accounts=len(pools.cloudinary),
         supabase_configured=bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY),
     )
+
+
+@app.get("/v1/app/update", response_model=AppUpdateResponse)
+async def get_app_update() -> AppUpdateResponse:
+    cached = app_update_cache.get("data")
+    if cached is not None and time.time() < float(app_update_cache.get("expires_at", 0.0)):
+        return cached
+
+    update = await fetch_latest_app_update()
+    app_update_cache["data"] = update
+    app_update_cache["expires_at"] = time.time() + APP_UPDATE_CACHE_SECONDS
+    return update
 
 
 @app.post("/v1/audio/resolve", response_model=AudioResolveResponse)

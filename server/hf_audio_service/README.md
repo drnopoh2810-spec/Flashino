@@ -47,11 +47,14 @@ Keep incrementing the index as needed. The service supports more than 100 accoun
 - `IFLYTEK_ENGLISH_VOICE=x4_enus_lucy_education`
 - `SUPABASE_URL=https://...supabase.co`
 - `SUPABASE_SERVICE_ROLE_KEY=...`
+- `GITHUB_TOKEN=...` (optional, used only by `/v1/app/update` to raise GitHub API limits)
+- `APP_UPDATE_CACHE_SECONDS=60`
 
 ## Endpoints
 
 - `GET /health`
 - `GET /wake`
+- `GET /v1/app/update`
 - `POST /v1/audio/resolve`
 - `GET /v1/qa/feed`
 - `POST /v1/qa/questions`
@@ -63,6 +66,13 @@ Keep incrementing the index as needed. The service supports more than 100 accoun
 - `POST /v1/qa/answers/{id}/accept`
 - `POST /v1/qa/questions/{id}/vote`
 - `POST /v1/qa/answers/{id}/vote`
+
+## GitHub Actions deployment
+
+The repository includes `.github/workflows/deploy-hf-space.yml`.
+Add a GitHub Actions secret named `HF_TOKEN` with a valid Hugging Face token to deploy this folder to:
+
+- `nopoh22/eduspecial-audio-service`
 
 ## Keep Alive
 

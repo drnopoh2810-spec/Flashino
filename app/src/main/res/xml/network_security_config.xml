@@ -13,5 +13,8 @@
         <domain includeSubdomains="true">github.com</domain>
         <domain includeSubdomains="true">api.github.com</domain>
         <domain includeSubdomains="true">githubusercontent.com</domain>
+        <!-- Hugging Face Space backend -->
+        <domain includeSubdomains="true">hf.space</domain>
+        <domain includeSubdomains="true">huggingface.co</domain>
     </domain-config>
 </network-security-config>
