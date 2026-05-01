@@ -21,15 +21,19 @@
   <a href="https://github.com/drnopoh2810-spec/Flashino/releases/latest">Latest APK</a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/readme/flashino-readme-banner.png" alt="Flashino README banner" width="920" />
+</p>
+
 ## Screenshots
 
 <table>
   <tr>
-    <td align="center"><img src="store_assets/amazon/raw_phone/01_home.png" alt="Flashino home screen" width="180" /></td>
-    <td align="center"><img src="store_assets/amazon/raw_phone/02_flashcards.png" alt="Flashino flashcards screen" width="180" /></td>
-    <td align="center"><img src="store_assets/amazon/raw_phone/03_study.png" alt="Flashino study screen" width="180" /></td>
-    <td align="center"><img src="store_assets/amazon/raw_phone/04_search.png" alt="Flashino search screen" width="180" /></td>
-    <td align="center"><img src="store_assets/amazon/raw_phone/05_profile.png" alt="Flashino profile screen" width="180" /></td>
+    <td align="center"><img src="docs/assets/readme/flashino-home-mockup.png" alt="Flashino home mockup" width="180" /></td>
+    <td align="center"><img src="docs/assets/readme/flashino-flashcards-mockup.png" alt="Flashino flashcards mockup" width="180" /></td>
+    <td align="center"><img src="docs/assets/readme/flashino-study-mockup.png" alt="Flashino study mockup" width="180" /></td>
+    <td align="center"><img src="docs/assets/readme/flashino-search-mockup.png" alt="Flashino search mockup" width="180" /></td>
+    <td align="center"><img src="docs/assets/readme/flashino-profile-mockup.png" alt="Flashino profile mockup" width="180" /></td>
   </tr>
   <tr>
     <td align="center">Home</td>
@@ -91,6 +95,7 @@ app/                         Android application module
 app/src/main/java/           Kotlin source code
 app/src/main/res/            Android resources, strings, launcher assets
 docs/supabase/               Supabase schema and setup notes
+docs/assets/readme/          README banner and generated UI mockups
 icon/                        App icon exports
 scripts/                     Validation and automation scripts
 server/hf_audio_service/     Audio service support files
@@ -189,7 +194,13 @@ Store-ready images are available in:
 store_assets/amazon/
 ```
 
-The folder includes app icons, phone screenshots, tablet screenshots, and promotional artwork. The README uses the existing screenshots so the GitHub project page reflects the same user-facing product visuals.
+The folder includes app icons, phone screenshots, tablet screenshots, and promotional artwork for store submissions.
+
+The README preview images are generated mockups stored in:
+
+```text
+docs/assets/readme/
+```
 
 ### app-ads.txt
 
@@ -264,6 +275,7 @@ app/                         وحدة تطبيق Android
 app/src/main/java/           كود Kotlin
 app/src/main/res/            موارد Android والنصوص والأيقونات
 docs/supabase/               ملفات وإرشادات Supabase
+docs/assets/readme/          بانر وصور تخيلية خاصة بملف README
 icon/                        أيقونات التطبيق
 scripts/                     سكربتات التحقق والأتمتة
 server/hf_audio_service/     ملفات دعم خدمة الصوت
@@ -362,7 +374,13 @@ https://github.com/drnopoh2810-spec/Flashino/releases/latest
 store_assets/amazon/
 ```
 
-يشمل ذلك أيقونات التطبيق، لقطات شاشة للهاتف، لقطات شاشة للتابلت، وصورة ترويجية. يستخدم هذا الملف الصور الموجودة حتى تظهر صفحة GitHub بشكل قريب من شكل التطبيق الحقيقي.
+يشمل ذلك أيقونات التطبيق، لقطات شاشة للهاتف، لقطات شاشة للتابلت، وصورة ترويجية لاستخدامها في المتاجر.
+
+صور المعاينة داخل README هي صور تخيلية مولدة للمستودع وموجودة في:
+
+```text
+docs/assets/readme/
+```
 
 ### ملف app-ads.txt
 
