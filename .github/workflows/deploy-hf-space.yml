@@ -1,0 +1,36 @@
+name: Deploy Hugging Face Space
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore private Space bundle in runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hf-space"
+          git archive 82fcc09c9ef53ac547859aa4fae93cb60570e133 server/hf_audio_service \
+            | tar -x -C "$RUNNER_TEMP/hf-space"
+
+      - name: Install Hugging Face CLI
+        run: python -m pip install --upgrade "huggingface_hub[cli]"
+
+      - name: Upload Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          test -n "$HF_TOKEN"
+          hf upload nopoh22/eduspecial-audio-service "$RUNNER_TEMP/hf-space/server/hf_audio_service" \
+            --repo-type space \
+            --commit-message "Deploy update endpoint"
