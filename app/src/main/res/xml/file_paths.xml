@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Exposes files from getExternalFilesDir(DIRECTORY_DOWNLOADS)
+        so the APK can be shared with the system installer via FileProvider.
+    -->
+    <external-files-path
+        name="apk_downloads"
+        path="Download/" />
+</paths>

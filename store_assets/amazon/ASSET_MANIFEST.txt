@@ -1,0 +1,20 @@
+Qusasa Amazon Store Assets
+==========================
+
+[icons]
+qusasa_icon_114x114.png | 114x114
+qusasa_icon_512x512.png | 512x512
+
+[screenshots_mobile]
+qusasa_mobile_flashcards_1080x1920.png | 1080x1920
+qusasa_mobile_profile_1080x1920.png | 1080x1920
+qusasa_mobile_qa_1080x1920.png | 1080x1920
+
+[screenshots_tablet]
+qusasa_tablet_flashcards_1920x1200.png | 1920x1200
+qusasa_tablet_profile_1920x1200.png | 1920x1200
+qusasa_tablet_qa_1920x1200.png | 1920x1200
+
+[promotional]
+qusasa_promotional_1024x500.png | 1024x500
+

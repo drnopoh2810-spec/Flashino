@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flashino</string>
+    <string name="brand_name">فلاشينو</string>
+    <string name="app_description">فلاشينو</string>
+
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_flashcards">البطاقات</string>
+    <string name="nav_study">المراجعة</string>
+    <string name="nav_qa">الأسئلة</string>
+    <string name="nav_search">البحث</string>
+    <string name="nav_profile">حسابي</string>
+
+    <string name="login">تسجيل الدخول</string>
+    <string name="register">حساب جديد</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="display_name">الاسم</string>
+    <string name="sign_in">دخول</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="browse_as_guest">تصفح كزائر (بدون حساب)</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+
+    <string name="add_term">إضافة مصطلح</string>
+    <string name="term_label">المصطلح (بالإنجليزية)</string>
+    <string name="definition_label">التعريف</string>
+    <string name="category_label">الفئة</string>
+    <string name="duplicate_warning">هذا المصطلح موجود بالفعل</string>
+    <string name="checking_duplicate">جارٍ التحقق من التكرار...</string>
+    <string name="no_flashcards">لا توجد بطاقات بعد</string>
+    <string name="add_first_term">اضغط + لإضافة أول مصطلح</string>
+
+    <string name="study_mode">وضع المراجعة</string>
+    <string name="tap_to_reveal">اضغط على البطاقة لإظهار الإجابة</string>
+    <string name="session_complete">انتهت الجلسة!</string>
+    <string name="btn_again">مجددًا</string>
+    <string name="btn_hard">صعب</string>
+    <string name="btn_good">جيد</string>
+    <string name="btn_easy">سهل</string>
+    <string name="start_new_session">بدء جلسة جديدة</string>
+
+    <string name="ask_question">اطرح سؤالًا</string>
+    <string name="post_question">نشر</string>
+    <string name="no_questions">لا توجد أسئلة بعد</string>
+    <string name="be_first_to_ask">كن أول من يطرح سؤالًا!</string>
+    <string name="add_answer">إضافة إجابة</string>
+
+    <string name="search_hint">ابحث عن مصطلح أو سؤال...</string>
+    <string name="no_results">لا نتائج</string>
+    <string name="search_database">ابحث في قاعدة البيانات</string>
+
+    <string name="profile">الملف الشخصي</string>
+    <string name="dark_mode">الوضع الليلي</string>
+    <string name="notifications">إشعارات المراجعة</string>
+    <string name="daily_goal">الهدف اليومي</string>
+    <string name="sign_out">تسجيل الخروج</string>
+
+    <string name="error_network">لا يوجد اتصال بالإنترنت. العمل في وضع عدم الاتصال.</string>
+    <string name="error_generic">حدث خطأ ما. يرجى المحاولة مرة أخرى.</string>
+    <string name="error_invalid_email">بريد إلكتروني غير صحيح</string>
+    <string name="error_short_password">كلمة المرور 6 أحرف على الأقل</string>
+
+    <string name="update_available">تحديث جديد متاح</string>
+    <string name="update_now">تحديث الآن</string>
+    <string name="update_later">لاحقًا</string>
+    <string name="update_downloading">جارٍ التنزيل...</string>
+    <string name="update_release_notes">ملاحظات الإصدار:</string>
+    <string name="update_error_title">خطأ في التحديث</string>
+    <string name="update_ok">حسنًا</string>
+    <string name="update_notification_title">تحديث فلاشينو</string>
+
+    <string name="settings_profile_title">إعدادات الملف الشخصي</string>
+    <string name="back">رجوع</string>
+    <string name="personal_info">المعلومات الشخصية</string>
+    <string name="edit">تعديل</string>
+    <string name="save">حفظ</string>
+    <string name="display_name_label">الاسم المعروض</string>
+    <string name="bio_label">نبذة شخصية (اختياري)</string>
+    <string name="bio_placeholder">اكتب نبذة قصيرة عنك...</string>
+    <string name="email_label">البريد الإلكتروني</string>
+    <string name="verified">محقق</string>
+    <string name="not_verified">غير محقق</string>
+    <string name="bio_title">النبذة الشخصية</string>
+    <string name="points_label">النقاط</string>
+    <string name="points_value">%1$d نقطة</string>
+    <string name="contributions_label">المساهمات</string>
+    <string name="contributions_value">%1$d مساهمة</string>
+
+    <string name="preferences_title">التفضيلات</string>
+    <string name="preferences_saved_success">تم حفظ التفضيلات بنجاح</string>
+    <string name="show_more">إظهار</string>
+    <string name="show_less">إخفاء</string>
+    <string name="language_title">اللغة</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_en">English</string>
+    <string name="theme_title">المظهر</string>
+    <string name="theme_system">تلقائي</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_palette_title">ألوان التطبيق</string>
+    <string name="theme_palette_qusasa">الأصلي</string>
+    <string name="theme_palette_oasis">واحة</string>
+    <string name="theme_palette_sunset">غروب</string>
+    <string name="notifications_title">الإشعارات</string>
+    <string name="notifications_subtitle">تلقي إشعارات التطبيق</string>
+    <string name="study_reminders_title">تذكيرات الدراسة</string>
+    <string name="study_reminders_subtitle">تذكيرات يومية للمراجعة</string>
+    <string name="reminder_time_title">وقت تذكير المراجعة</string>
+    <string name="test_notification_title">إشعار تجريبي</string>
+    <string name="test_notification_subtitle">أرسل تذكيرًا فوريًا للتأكد من أن الإشعارات تعمل</string>
+    <string name="sound_title">الصوت</string>
+    <string name="sound_subtitle">تشغيل الأصوات والتأثيرات</string>
+    <string name="vibration_title">الاهتزاز</string>
+    <string name="vibration_subtitle">تشغيل الاهتزازات أثناء التفاعل</string>
+    <string name="autoplay_tts_title">النطق التلقائي</string>
+    <string name="autoplay_tts_subtitle">نطق البطاقات تلقائيًا</string>
+    <string name="email_notifications_title">رسائل البريد</string>
+    <string name="email_notifications_subtitle">استقبال تنبيهات على البريد الإلكتروني</string>
+
+    <string name="security_title">الأمان</string>
+    <string name="change_password_title">تغيير كلمة المرور</string>
+    <string name="change_password_subtitle">تحديث كلمة مرور حسابك</string>
+    <string name="security_settings_title">إعدادات الأمان</string>
+    <string name="security_settings_subtitle">الحماية الإضافية وسجل الأمان</string>
+    <string name="account_security_title">إعدادات الأمان</string>
+    <string name="email_verification_title">التحقق من البريد الإلكتروني</string>
+    <string name="email_verified_title">البريد الإلكتروني مؤكد</string>
+    <string name="email_not_verified_title">البريد الإلكتروني غير مؤكد</string>
+    <string name="email_verified_subtitle">يمكنك الآن الاعتماد على البريد في الاسترداد والتنبيهات الأمنية</string>
+    <string name="email_not_verified_subtitle">أرسل رابط التحقق ثم حدّث الحالة بعد فتح الرابط من بريدك</string>
+    <string name="send_link">إرسال الرابط</string>
+    <string name="refresh_status">تحديث الحالة</string>
+    <string name="extra_protection_title">الحماية الإضافية</string>
+    <string name="extra_protection_body">يعتمد هذا الإصدار حاليًا على تأكيد البريد وكلمة المرور وسجل الأمان. المصادقة الثنائية عبر رمز تحقق لم تُفعّل بعد داخل التطبيق.</string>
+    <string name="extra_protection_verified_hint">البريد الإلكتروني مؤكد، وهذه هي طبقة الحماية الإضافية المتاحة الآن.</string>
+    <string name="extra_protection_unverified_hint">ابدأ بتأكيد بريدك الإلكتروني حتى تكتمل طبقة الحماية الحالية.</string>
+    <string name="current_session_title">الجلسة الحالية</string>
+    <string name="current_device_title">هذا الجهاز</string>
+    <string name="last_login_value">آخر دخول: %1$s</string>
+    <string name="active_status">نشط</string>
+    <string name="failed_status">فشل</string>
+    <string name="session_only_hint">إذا كنت تشك في وجود جلسات أخرى، غيّر كلمة المرور بعد تسجيل الخروج من هذا الجهاز.</string>
+    <string name="sign_out_current_device">تسجيل الخروج من هذا الجهاز</string>
+    <string name="security_audit_title">سجل الأمان</string>
+    <string name="security_audit_subtitle">آخر الأنشطة الأمنية على حسابك</string>
+    <string name="no_security_activity">لا توجد أنشطة أمنية مسجلة</string>
+    <string name="account_recovery_title">استرداد الحساب</string>
+    <string name="account_recovery_subtitle">أرسل رابط إعادة تعيين كلمة المرور إلى بريدك المرتبط بالحساب.</string>
+    <string name="recovery_link_title">رابط استرداد الحساب</string>
+    <string name="recovery_link_subtitle">سيتم إرساله إلى البريد المرتبط بالحساب</string>
+
+    <string name="danger_zone_title">منطقة الخطر</string>
+    <string name="delete_account_title">حذف الحساب</string>
+    <string name="delete_account_subtitle">حذف حسابك وجميع بياناتك نهائيًا</string>
+
+    <string name="current_password">كلمة المرور الحالية</string>
+    <string name="new_password">كلمة المرور الجديدة</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="show_password">إظهار</string>
+    <string name="hide_password">إخفاء</string>
+    <string name="password_min_length">6 أحرف على الأقل</string>
+    <string name="password_mismatch">كلمات المرور غير متطابقة</string>
+    <string name="change_password_dialog_title">تغيير كلمة المرور</string>
+    <string name="change">تغيير</string>
+    <string name="cancel">إلغاء</string>
+
+    <string name="delete_account_dialog_title">حذف الحساب</string>
+    <string name="delete_account_dialog_body">هل أنت متأكد من رغبتك في حذف حسابك؟\n\nسيتم حذف جميع بياناتك نهائيًا ولن يمكن استرجاعها:\n• البطاقات التعليمية\n• الأسئلة والإجابات\n• النقاط والإنجازات\n• الإعدادات والتفضيلات\n\nهذا الإجراء لا يمكن التراجع عنه.</string>
+    <string name="delete_forever">حذف نهائيًا</string>
+    <string name="dismiss">إخفاء</string>
+    <string name="open">فتح</string>
+
+    <string name="empty_profile_title">لا توجد بيانات ملف شخصي متاحة الآن</string>
+    <string name="empty_profile_error_title">تعذر تحميل بيانات الحساب</string>
+    <string name="empty_profile_subtitle">يمكنك إعادة المحاولة الآن، وسيعرض التطبيق البيانات المحلية المتاحة حتى لو تعذر مزامنة Firestore.</string>
+    <string name="retry">إعادة المحاولة</string>
+
+    <string name="profile_load_error">تعذر تحميل الملف الشخصي</string>
+    <string name="profile_load_error_with_reason">فشل في تحميل الملف الشخصي: %1$s</string>
+    <string name="profile_update_error">فشل في تحديث الملف الشخصي</string>
+    <string name="profile_update_error_with_reason">فشل في تحديث الملف الشخصي: %1$s</string>
+    <string name="preferences_update_error_with_reason">فشل في تحديث التفضيلات: %1$s</string>
+    <string name="password_change_success">تم تغيير كلمة المرور بنجاح</string>
+    <string name="password_change_error">فشل في تغيير كلمة المرور</string>
+    <string name="password_change_error_with_reason">فشل في تغيير كلمة المرور: %1$s</string>
+    <string name="account_delete_success">تم حذف الحساب نهائيًا</string>
+    <string name="account_delete_error">فشل في حذف الحساب</string>
+    <string name="account_delete_error_with_reason">فشل في حذف الحساب: %1$s</string>
+    <string name="test_notification_success">تم إرسال إشعار تجريبي إلى جهازك</string>
+    <string name="test_notification_error">تعذر إرسال الإشعار التجريبي</string>
+    <string name="security_load_error">فشل في تحميل معلومات الأمان: %1$s</string>
+    <string name="sign_out_current_device_success">تم تسجيل الخروج من هذا الجهاز. لإنهاء الجلسات الأخرى غيّر كلمة المرور.</string>
+    <string name="sign_out_error_with_reason">فشل في تسجيل الخروج: %1$s</string>
+    <string name="recovery_missing_email">لا يوجد بريد إلكتروني مرتبط لإرسال رابط الاسترداد.</string>
+    <string name="recovery_link_sent_success">تم إرسال رابط استرداد الحساب إلى %1$s</string>
+    <string name="recovery_link_error">فشل في إرسال رابط الاسترداد</string>
+    <string name="verification_link_sent_success">تم إرسال رابط التحقق إلى بريدك الإلكتروني</string>
+    <string name="verification_link_error">فشل في إرسال رابط التحقق</string>
+    <string name="verification_status_verified">تم تحديث حالة البريد الإلكتروني</string>
+    <string name="verification_status_pending">البريد الإلكتروني غير مؤكد بعد</string>
+    <string name="verification_status_error">فشل في تحديث حالة البريد</string>
+    <string name="notification_channel_name">تذكير المراجعة</string>
+    <string name="notification_channel_description">إشعارات يومية لتذكيرك بمراجعة البطاقات</string>
+    <string name="test_reminder_title">تذكير تجريبي</string>
+    <string name="test_reminder_body">هذا إشعار تجريبي للتأكد من أن تذكيرات المراجعة تعمل على جهازك.</string>
+    <string name="study_reminder_title">حان وقت المراجعة!</string>
+    <string name="study_reminder_due_body">لديك %1$d بطاقة للمراجعة اليوم</string>
+    <string name="study_reminder_generic_body">حافظ على تقدمك وراجع بطاقاتك اليوم</string>
+</resources>

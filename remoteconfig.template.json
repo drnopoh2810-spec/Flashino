@@ -1,0 +1,60 @@
+{
+  "conditions": [],
+  "parameters": {
+    "elevenlabs_keys": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Comma-separated ElevenLabs keys supplied from the deployment environment.",
+      "valueType": "STRING"
+    },
+    "cloudinary_cloud_name": {
+      "defaultValue": { "value": "" },
+      "description": "Cloudinary cloud name used for image / video uploads.",
+      "valueType": "STRING"
+    },
+    "cloudinary_api_key": {
+      "defaultValue": { "value": "" },
+      "description": "Cloudinary API key (public).",
+      "valueType": "STRING"
+    },
+    "cloudinary_upload_preset": {
+      "defaultValue": { "value": "" },
+      "description": "Unsigned upload preset name used by the Android app.",
+      "valueType": "STRING"
+    },
+    "algolia_app_id": {
+      "defaultValue": { "value": "" },
+      "description": "Algolia application ID for full-text search.",
+      "valueType": "STRING"
+    },
+    "algolia_search_key": {
+      "defaultValue": { "value": "" },
+      "description": "Algolia search-only API key.",
+      "valueType": "STRING"
+    },
+    "algolia_index_flashcards": {
+      "defaultValue": { "value": "flashcards" },
+      "valueType": "STRING"
+    },
+    "algolia_index_questions": {
+      "defaultValue": { "value": "questions" },
+      "valueType": "STRING"
+    },
+    "feature_google_signin_enabled": {
+      "defaultValue": { "value": "true" },
+      "description": "Toggle to show / hide the Google sign-in button at runtime.",
+      "valueType": "BOOLEAN"
+    },
+    "min_supported_app_version": {
+      "defaultValue": { "value": "3" },
+      "description": "Force-update threshold (versionCode). App will prompt update if below.",
+      "valueType": "NUMBER"
+    }
+  },
+  "parameterGroups": {},
+  "version": {
+    "versionNumber": "2",
+    "description": "Sanitized runtime template placeholders."
+  }
+}

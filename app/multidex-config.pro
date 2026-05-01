@@ -1,0 +1,7 @@
+-keep class com.eduspecial.EduSpecialApp { *; }
+-keep class com.eduspecial.Hilt_EduSpecialApp { *; }
+-keep class com.eduspecial.MainActivity { *; }
+-keep class com.eduspecial.update.ApkInstallReceiver { *; }
+-keep class dagger.hilt.internal.aggregatedroot.codegen._com_eduspecial_EduSpecialApp { *; }
+-keep class dagger.hilt.internal.processedrootsentinel.codegen._com_eduspecial_EduSpecialApp { *; }
+-keep class hilt_aggregated_deps._com_eduspecial_EduSpecialApp_GeneratedInjector { *; }

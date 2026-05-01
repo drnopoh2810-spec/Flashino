@@ -1,0 +1,419 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function authEmail() {
+      return isSignedIn() && request.auth.token.email != null
+        ? request.auth.token.email
+        : "";
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isBootstrapAdmin() {
+      return authEmail() == "mahmoudnabihsaleh@gmail.com";
+    }
+
+    function hasRole(role) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isModeratorOrAdmin() {
+      return isBootstrapAdmin()
+        || hasRole("ADMIN")
+        || hasRole("MODERATOR");
+    }
+
+    function isAdmin() {
+      return isBootstrapAdmin() || hasRole("ADMIN");
+    }
+
+    function validUserPreferences() {
+      return !("preferences" in request.resource.data)
+        || (
+          request.resource.data.preferences is map
+          && request.resource.data.preferences.keys().hasOnly([
+            "language",
+            "theme",
+            "themePalette",
+            "notificationsEnabled",
+            "studyRemindersEnabled",
+            "emailNotificationsEnabled",
+            "soundEnabled",
+            "vibrationEnabled",
+            "autoPlayTTS",
+            "dailyGoal",
+            "reminderTime"
+          ])
+        );
+    }
+
+    function validUserCreate(userId) {
+      return isSelf(userId)
+        && request.resource.data.keys().hasAll([
+          "email",
+          "displayName",
+          "role",
+          "accountStatus",
+          "emailVerified",
+          "phoneVerified",
+          "twoFactorEnabled",
+          "createdAt",
+          "lastLoginAt",
+          "points",
+          "contributionCount",
+          "moderationScore",
+          "preferences"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "email",
+          "displayName",
+          "role",
+          "accountStatus",
+          "emailVerified",
+          "phoneVerified",
+          "twoFactorEnabled",
+          "createdAt",
+          "lastLoginAt",
+          "profileImageUrl",
+          "avatarUrl",
+          "bio",
+          "points",
+          "contributionCount",
+          "moderationScore",
+          "preferences",
+          "updatedAt"
+        ])
+        && request.resource.data.email is string
+        && request.resource.data.email == authEmail()
+        && request.resource.data.displayName is string
+        && request.resource.data.role is string
+        && request.resource.data.accountStatus is string
+        && request.resource.data.emailVerified is bool
+        && request.resource.data.phoneVerified is bool
+        && request.resource.data.twoFactorEnabled is bool
+        && request.resource.data.createdAt is int
+        && request.resource.data.lastLoginAt is int
+        && request.resource.data.points == 0
+        && request.resource.data.contributionCount == 0
+        && request.resource.data.moderationScore >= 0
+        && request.resource.data.moderationScore <= 1
+        && validUserPreferences()
+        && (
+          (isBootstrapAdmin()
+            && request.resource.data.role == "ADMIN"
+            && request.resource.data.accountStatus == "ACTIVE")
+          || (!isBootstrapAdmin()
+            && request.resource.data.role == "USER"
+            && request.resource.data.accountStatus == "PENDING_VERIFICATION")
+        );
+    }
+
+    function validSelfUserUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+          "displayName",
+          "profileImageUrl",
+          "avatarUrl",
+          "bio",
+          "lastLoginAt",
+          "updatedAt",
+          "preferences",
+          "emailVerified",
+          "phoneVerified",
+          "twoFactorEnabled",
+          "email"
+        ])
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.accountStatus == resource.data.accountStatus
+        && request.resource.data.points == resource.data.points
+        && request.resource.data.contributionCount == resource.data.contributionCount
+        && request.resource.data.moderationScore == resource.data.moderationScore
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validUserPreferences();
+    }
+
+    function validSecurityLogCreate() {
+      return request.resource.data.keys().hasAll([
+          "userId",
+          "event",
+          "timestamp",
+          "success"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "id",
+          "userId",
+          "event",
+          "timestamp",
+          "ipAddress",
+          "userAgent",
+          "details",
+          "success"
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.event is string
+        && request.resource.data.timestamp is int
+        && request.resource.data.success is bool
+        && (!("details" in request.resource.data) || request.resource.data.details is map);
+    }
+
+    function validQuestionCreate() {
+      return request.resource.data.keys().hasAll([
+          "question",
+          "contributor",
+          "contributorName",
+          "contributorVerified",
+          "upvotes",
+          "createdAt",
+          "isAnswered"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "id",
+          "question",
+          "category",
+          "contributor",
+          "contributorName",
+          "contributorVerified",
+          "contributorAvatarUrl",
+          "upvotes",
+          "createdAt",
+          "updatedAt",
+          "isAnswered",
+          "acceptedAnswerId",
+          "hashtags"
+        ])
+        && request.resource.data.question is string
+        && request.resource.data.contributor == request.auth.uid
+        && request.resource.data.contributorName is string
+        && request.resource.data.contributorVerified is bool
+        && request.resource.data.upvotes == 0
+        && request.resource.data.createdAt is int
+        && request.resource.data.isAnswered is bool
+        && (!("category" in request.resource.data) || request.resource.data.category is string)
+        && (!("acceptedAnswerId" in request.resource.data) || request.resource.data.acceptedAnswerId is string)
+        && (!("hashtags" in request.resource.data)
+          || request.resource.data.hashtags is list
+          || request.resource.data.hashtags is string);
+    }
+
+    function validQuestionOwnerEdit() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+          "question",
+          "category",
+          "hashtags",
+          "updatedAt"
+        ])
+        && request.resource.data.contributor == resource.data.contributor
+        && request.resource.data.upvotes == resource.data.upvotes
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.isAnswered == resource.data.isAnswered;
+    }
+
+    function validQuestionAcceptUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+          "isAnswered",
+          "acceptedAnswerId",
+          "updatedAt"
+        ])
+        && request.resource.data.contributor == resource.data.contributor
+        && request.resource.data.question == resource.data.question;
+    }
+
+    function validAnswerCreate() {
+      return request.resource.data.keys().hasAll([
+          "questionId",
+          "content",
+          "contributor",
+          "contributorName",
+          "contributorVerified",
+          "upvotes",
+          "isAccepted",
+          "createdAt"
+        ])
+        && request.resource.data.keys().hasOnly([
+          "id",
+          "questionId",
+          "content",
+          "contributor",
+          "contributorName",
+          "contributorVerified",
+          "contributorAvatarUrl",
+          "parentAnswerId",
+          "upvotes",
+          "isAccepted",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.questionId is string
+        && request.resource.data.content is string
+        && request.resource.data.contributor == request.auth.uid
+        && request.resource.data.contributorName is string
+        && request.resource.data.contributorVerified is bool
+        && request.resource.data.upvotes == 0
+        && request.resource.data.isAccepted is bool
+        && request.resource.data.createdAt is int
+        && (!("parentAnswerId" in request.resource.data) || request.resource.data.parentAnswerId is string);
+    }
+
+    function validAnswerOwnerEdit() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+          "content",
+          "updatedAt"
+        ])
+        && request.resource.data.questionId == resource.data.questionId
+        && request.resource.data.contributor == resource.data.contributor
+        && request.resource.data.upvotes == resource.data.upvotes
+        && request.resource.data.isAccepted == resource.data.isAccepted
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function validAnswerAcceptUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+          "isAccepted",
+          "updatedAt"
+        ])
+        && request.resource.data.questionId == resource.data.questionId
+        && request.resource.data.contributor == resource.data.contributor
+        && request.resource.data.content == resource.data.content;
+    }
+
+    function ownsQaQuestion(questionId) {
+      return exists(/databases/$(database)/documents/qa_questions/$(questionId))
+        && get(/databases/$(database)/documents/qa_questions/$(questionId)).data.contributor == request.auth.uid;
+    }
+
+    function ownsLegacyQuestion(questionId) {
+      return exists(/databases/$(database)/documents/questions/$(questionId))
+        && get(/databases/$(database)/documents/questions/$(questionId)).data.contributor == request.auth.uid;
+    }
+
+    function validQaQuestionVoteCreate() {
+      return request.resource.data.questionId is string
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.createdAt is int;
+    }
+
+    function validQaAnswerVoteCreate() {
+      return request.resource.data.answerId is string
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.createdAt is int;
+    }
+
+    match /users/{userId} {
+      allow read: if isSelf(userId) || isAdmin();
+      allow create: if validUserCreate(userId);
+      allow update: if (isSelf(userId) && validSelfUserUpdate()) || isAdmin();
+      allow delete: if isSelf(userId) || isAdmin();
+    }
+
+    match /security_logs/{logId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && validSecurityLogCreate();
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow update: if false;
+    }
+
+    match /role_assignments/{assignmentId} {
+      allow read: if isAdmin()
+        || (isSignedIn()
+          && (resource.data.targetUserId == request.auth.uid || resource.data.assignerId == request.auth.uid));
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /user_tokens/{userId} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /bookmarks/{userId}/{document=**} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /user_flashcard_progress/{userId}/{document=**} {
+      allow read, write: if isSelf(userId);
+    }
+
+    match /notification_logs/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /pending_submissions/{id} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /qa_questions/{questionId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validQuestionCreate();
+      allow update: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validQuestionOwnerEdit())
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validQuestionAcceptUpdate());
+      allow delete: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid);
+    }
+
+    match /qa_answers/{answerId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validAnswerCreate();
+      allow update: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validAnswerOwnerEdit())
+        || (isSignedIn() && ownsQaQuestion(resource.data.questionId) && validAnswerAcceptUpdate());
+      allow delete: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid)
+        || (isSignedIn() && ownsQaQuestion(resource.data.questionId));
+    }
+
+    match /questions/{questionId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validQuestionCreate();
+      allow update: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validQuestionOwnerEdit())
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validQuestionAcceptUpdate());
+      allow delete: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid);
+    }
+
+    match /answers/{answerId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validAnswerCreate();
+      allow update: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid && validAnswerOwnerEdit())
+        || (isSignedIn() && ownsLegacyQuestion(resource.data.questionId) && validAnswerAcceptUpdate());
+      allow delete: if isModeratorOrAdmin()
+        || (isSignedIn() && resource.data.contributor == request.auth.uid)
+        || (isSignedIn() && ownsLegacyQuestion(resource.data.questionId));
+    }
+
+    match /qa_question_votes/{voteId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validQaQuestionVoteCreate();
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /qa_answer_votes/{voteId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validQaAnswerVoteCreate();
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

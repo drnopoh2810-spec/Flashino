@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flashino</string>
+    <string name="brand_name">Flashino</string>
+    <string name="app_description">Flashino</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_flashcards">Cards</string>
+    <string name="nav_study">Study</string>
+    <string name="nav_qa">Q&amp;A</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="login">Sign in</string>
+    <string name="register">Create account</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="display_name">Name</string>
+    <string name="sign_in">Sign in</string>
+    <string name="create_account">Create account</string>
+    <string name="browse_as_guest">Continue as guest</string>
+    <string name="forgot_password">Forgot password?</string>
+
+    <string name="add_term">Add term</string>
+    <string name="term_label">Term (English)</string>
+    <string name="definition_label">Definition</string>
+    <string name="category_label">Category</string>
+    <string name="duplicate_warning">This term already exists</string>
+    <string name="checking_duplicate">Checking duplicates…</string>
+    <string name="no_flashcards">No flashcards yet</string>
+    <string name="add_first_term">Tap + to add your first term</string>
+
+    <string name="study_mode">Study mode</string>
+    <string name="tap_to_reveal">Tap the card to reveal the answer</string>
+    <string name="session_complete">Session complete!</string>
+    <string name="btn_again">Again</string>
+    <string name="btn_hard">Hard</string>
+    <string name="btn_good">Good</string>
+    <string name="btn_easy">Easy</string>
+    <string name="start_new_session">Start a new session</string>
+
+    <string name="ask_question">Ask a question</string>
+    <string name="post_question">Post</string>
+    <string name="no_questions">No questions yet</string>
+    <string name="be_first_to_ask">Be the first to ask a question!</string>
+    <string name="add_answer">Add answer</string>
+
+    <string name="search_hint">Search for a term or question…</string>
+    <string name="no_results">No results</string>
+    <string name="search_database">Search the database</string>
+
+    <string name="profile">Profile</string>
+    <string name="dark_mode">Dark mode</string>
+    <string name="notifications">Study reminders</string>
+    <string name="daily_goal">Daily goal</string>
+    <string name="sign_out">Sign out</string>
+
+    <string name="error_network">No internet connection. Working offline.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_short_password">Password must be at least 6 characters</string>
+
+    <string name="update_available">Update available</string>
+    <string name="update_now">Update now</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_release_notes">Release notes:</string>
+    <string name="update_error_title">Update error</string>
+    <string name="update_ok">OK</string>
+    <string name="update_notification_title">Flashino update</string>
+
+    <string name="settings_profile_title">Profile settings</string>
+    <string name="back">Back</string>
+    <string name="personal_info">Personal information</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="display_name_label">Display name</string>
+    <string name="bio_label">Bio (optional)</string>
+    <string name="bio_placeholder">Write a short bio about yourself…</string>
+    <string name="email_label">Email</string>
+    <string name="verified">Verified</string>
+    <string name="not_verified">Not verified</string>
+    <string name="bio_title">Bio</string>
+    <string name="points_label">Points</string>
+    <string name="points_value">%1$d points</string>
+    <string name="contributions_label">Contributions</string>
+    <string name="contributions_value">%1$d contributions</string>
+
+    <string name="preferences_title">Preferences</string>
+    <string name="preferences_saved_success">Preferences saved successfully</string>
+    <string name="show_more">Show</string>
+    <string name="show_less">Hide</string>
+    <string name="language_title">Language</string>
+    <string name="language_ar">Arabic</string>
+    <string name="language_en">English</string>
+    <string name="theme_title">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_palette_title">Color style</string>
+    <string name="theme_palette_qusasa">Original</string>
+    <string name="theme_palette_oasis">Oasis</string>
+    <string name="theme_palette_sunset">Sunset</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Receive app notifications</string>
+    <string name="study_reminders_title">Study reminders</string>
+    <string name="study_reminders_subtitle">Daily review reminders</string>
+    <string name="reminder_time_title">Review reminder time</string>
+    <string name="test_notification_title">Test notification</string>
+    <string name="test_notification_subtitle">Send an instant reminder to verify notifications</string>
+    <string name="sound_title">Sound</string>
+    <string name="sound_subtitle">Play sounds and effects</string>
+    <string name="vibration_title">Vibration</string>
+    <string name="vibration_subtitle">Enable vibration during interactions</string>
+    <string name="autoplay_tts_title">Auto-play pronunciation</string>
+    <string name="autoplay_tts_subtitle">Play card audio automatically</string>
+    <string name="email_notifications_title">Email notifications</string>
+    <string name="email_notifications_subtitle">Receive notifications by email</string>
+
+    <string name="security_title">Security</string>
+    <string name="change_password_title">Change password</string>
+    <string name="change_password_subtitle">Update your account password</string>
+    <string name="security_settings_title">Security settings</string>
+    <string name="security_settings_subtitle">Extra protection and security history</string>
+    <string name="account_security_title">Security settings</string>
+    <string name="email_verification_title">Email verification</string>
+    <string name="email_verified_title">Email is verified</string>
+    <string name="email_not_verified_title">Email is not verified</string>
+    <string name="email_verified_subtitle">You can now rely on email for recovery and security alerts</string>
+    <string name="email_not_verified_subtitle">Send the verification link, then refresh the status after opening it from your inbox</string>
+    <string name="send_link">Send link</string>
+    <string name="refresh_status">Refresh status</string>
+    <string name="extra_protection_title">Extra protection</string>
+    <string name="extra_protection_body">This version currently relies on email verification, password protection, and security history. Two-factor verification by code has not been enabled inside the app yet.</string>
+    <string name="extra_protection_verified_hint">Your email is verified, and this is the extra protection layer currently available.</string>
+    <string name="extra_protection_unverified_hint">Start by verifying your email so the current protection layer becomes complete.</string>
+    <string name="current_session_title">Current session</string>
+    <string name="current_device_title">This device</string>
+    <string name="last_login_value">Last sign in: %1$s</string>
+    <string name="active_status">Active</string>
+    <string name="failed_status">Failed</string>
+    <string name="session_only_hint">If you suspect there are other sessions, change your password after signing out on this device.</string>
+    <string name="sign_out_current_device">Sign out on this device</string>
+    <string name="security_audit_title">Security history</string>
+    <string name="security_audit_subtitle">Latest security activity on your account</string>
+    <string name="no_security_activity">No security activity was recorded</string>
+    <string name="account_recovery_title">Account recovery</string>
+    <string name="account_recovery_subtitle">Send a password reset link to the email connected to your account.</string>
+    <string name="recovery_link_title">Recovery link</string>
+    <string name="recovery_link_subtitle">It will be sent to the email connected to your account</string>
+
+    <string name="danger_zone_title">Danger zone</string>
+    <string name="delete_account_title">Delete account</string>
+    <string name="delete_account_subtitle">Delete your account and all data permanently</string>
+
+    <string name="current_password">Current password</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="show_password">Show</string>
+    <string name="hide_password">Hide</string>
+    <string name="password_min_length">At least 6 characters</string>
+    <string name="password_mismatch">Passwords do not match</string>
+    <string name="change_password_dialog_title">Change password</string>
+    <string name="change">Change</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="delete_account_dialog_title">Delete account</string>
+    <string name="delete_account_dialog_body">Are you sure you want to delete your account?\n\nAll of your data will be deleted permanently and cannot be restored:\n• Flashcards\n• Questions and answers\n• Points and achievements\n• Settings and preferences\n\nThis action cannot be undone.</string>
+    <string name="delete_forever">Delete permanently</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="open">Open</string>
+
+    <string name="empty_profile_title">No profile data is available right now</string>
+    <string name="empty_profile_error_title">Unable to load account data</string>
+    <string name="empty_profile_subtitle">You can try again now. The app will show available local data even if Firestore sync is unavailable.</string>
+    <string name="retry">Retry</string>
+
+    <string name="profile_load_error">Unable to load your profile</string>
+    <string name="profile_load_error_with_reason">Failed to load your profile: %1$s</string>
+    <string name="profile_update_error">Failed to update your profile</string>
+    <string name="profile_update_error_with_reason">Failed to update your profile: %1$s</string>
+    <string name="preferences_update_error_with_reason">Failed to update preferences: %1$s</string>
+    <string name="password_change_success">Password changed successfully</string>
+    <string name="password_change_error">Failed to change password</string>
+    <string name="password_change_error_with_reason">Failed to change password: %1$s</string>
+    <string name="account_delete_success">Account deleted permanently</string>
+    <string name="account_delete_error">Failed to delete account</string>
+    <string name="account_delete_error_with_reason">Failed to delete account: %1$s</string>
+    <string name="test_notification_success">A test notification was sent to your device</string>
+    <string name="test_notification_error">Unable to send the test notification</string>
+    <string name="security_load_error">Failed to load security information: %1$s</string>
+    <string name="sign_out_current_device_success">Signed out on this device. To end other sessions, change your password.</string>
+    <string name="sign_out_error_with_reason">Failed to sign out: %1$s</string>
+    <string name="recovery_missing_email">No email is linked to send a recovery link.</string>
+    <string name="recovery_link_sent_success">A recovery link was sent to %1$s</string>
+    <string name="recovery_link_error">Failed to send the recovery link</string>
+    <string name="verification_link_sent_success">A verification link was sent to your email</string>
+    <string name="verification_link_error">Failed to send the verification link</string>
+    <string name="verification_status_verified">Email status refreshed successfully</string>
+    <string name="verification_status_pending">Email is still not verified</string>
+    <string name="verification_status_error">Failed to refresh email status</string>
+    <string name="notification_channel_name">Study reminder</string>
+    <string name="notification_channel_description">Daily reminders to review your cards</string>
+    <string name="test_reminder_title">Test reminder</string>
+    <string name="test_reminder_body">This is a test notification to confirm that study reminders work on your device.</string>
+    <string name="study_reminder_title">Time to review!</string>
+    <string name="study_reminder_due_body">You have %1$d cards to review today</string>
+    <string name="study_reminder_generic_body">Keep your progress going and review your cards today</string>
+</resources>

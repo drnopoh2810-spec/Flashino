@@ -1,0 +1,9 @@
+# Qusasa local.properties template
+#
+# NOTE: Runtime keys are supplied through secrets.properties / Gradle
+# properties. You do not need to place service keys or app secrets here.
+#
+# This file only configures the Android SDK path for local builds.
+
+# Android SDK path (set automatically by Android Studio on first sync)
+sdk.dir=/Users/yourname/Library/Android/sdk
