@@ -98,7 +98,6 @@ docs/supabase/               Supabase schema and setup notes
 docs/assets/readme/          README banner and generated UI mockups
 icon/                        App icon exports
 scripts/                     Validation and automation scripts
-server/hf_audio_service/     Audio service support files
 store_assets/amazon/         Store icons, screenshots, and promotional images
 .github/workflows/           CI and release workflows
 ```
@@ -278,7 +277,6 @@ docs/supabase/               ملفات وإرشادات Supabase
 docs/assets/readme/          بانر وصور تخيلية خاصة بملف README
 icon/                        أيقونات التطبيق
 scripts/                     سكربتات التحقق والأتمتة
-server/hf_audio_service/     ملفات دعم خدمة الصوت
 store_assets/amazon/         صور وأيقونات المتجر
 .github/workflows/           ملفات CI والإصدار
 ```
