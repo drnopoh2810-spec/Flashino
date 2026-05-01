@@ -42,6 +42,8 @@ import com.eduspecial.presentation.common.localizedText
 import com.eduspecial.presentation.common.RafiqBrandMark
 import com.eduspecial.presentation.navigation.Screen
 import com.eduspecial.presentation.theme.EduThemeExtras
+import com.eduspecial.update.UpdateState
+import com.eduspecial.update.UpdateViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +51,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     navController: NavController,
     innerPadding: PaddingValues,
+    updateViewModel: UpdateViewModel,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val themeTokens = EduThemeExtras.tokens
@@ -59,6 +62,12 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
     val rewardedLoading by adManager.rewardedLoading.collectAsState()
+    val updateState by updateViewModel.state.collectAsState()
+    var manualUpdateCheckRequested by remember { mutableStateOf(false) }
+    val updateFlowActive = updateState is UpdateState.Checking ||
+        updateState is UpdateState.Downloading ||
+        updateState is UpdateState.PermissionRequired ||
+        updateState is UpdateState.ReadyToInstall
     val currentLanguageLabel = stringResource(languageLabelRes(uiState.language))
 
     LaunchedEffect(uiState.isSignedOut) {
@@ -78,6 +87,28 @@ fun ProfileScreen(
         uiState.avatarError?.let { error ->
             snackbarHostState.showSnackbar(error)
             viewModel.clearAvatarError()
+        }
+    }
+
+    LaunchedEffect(updateState, manualUpdateCheckRequested) {
+        if (!manualUpdateCheckRequested) return@LaunchedEffect
+        when (updateState) {
+            UpdateState.UpToDate -> {
+                snackbarHostState.showSnackbar(
+                    localizedText(context, "أنت تستخدم أحدث إصدار بالفعل", "You already have the latest version")
+                )
+                manualUpdateCheckRequested = false
+                updateViewModel.dismissUpdate()
+            }
+            is UpdateState.Error,
+            is UpdateState.PermissionRequired,
+            is UpdateState.Downloading,
+            is UpdateState.ReadyToInstall,
+            is UpdateState.UpdateAvailable -> {
+                manualUpdateCheckRequested = false
+            }
+            UpdateState.Idle,
+            UpdateState.Checking -> Unit
         }
     }
 
@@ -274,6 +305,33 @@ fun ProfileScreen(
                         icon = Icons.Default.Settings,
                         title = localizedText("إعدادات الحساب", "Account settings"),
                         onClick = { navController.navigate(Screen.ProfileSettings.route) }
+                    )
+                    HorizontalDivider()
+                    SettingsItem(
+                        icon = Icons.Default.SystemUpdate,
+                        title = when (updateState) {
+                            UpdateState.Checking -> localizedText("جاري البحث عن تحديث...", "Checking for updates...")
+                            is UpdateState.Downloading -> localizedText("جاري تنزيل التحديث...", "Downloading update...")
+                            is UpdateState.PermissionRequired -> localizedText("أكمل إذن تثبيت التحديث", "Complete update install permission")
+                            is UpdateState.ReadyToInstall -> localizedText("جاري فتح التثبيت", "Opening installer")
+                            else -> localizedText("التحقق من وجود تحديثات", "Check for updates")
+                        },
+                        trailing = if (updateFlowActive) {
+                            {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        } else null,
+                        onClick = if (updateFlowActive) {
+                            null
+                        } else {
+                            {
+                                manualUpdateCheckRequested = true
+                                updateViewModel.checkForUpdate(autoInstall = true, notifyErrors = true)
+                            }
+                        }
                     )
                     HorizontalDivider()
                     SettingsItem(

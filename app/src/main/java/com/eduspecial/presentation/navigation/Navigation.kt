@@ -308,7 +308,13 @@ fun EduSpecialNavHost(prefs: UserPreferencesDataStore) {
                     )
                 }
                 composable(Screen.Search.route)      { SearchScreen(navController, innerPadding) }
-                composable(Screen.Profile.route)     { ProfileScreen(navController, innerPadding) }
+                composable(Screen.Profile.route) {
+                    ProfileScreen(
+                        navController = navController,
+                        innerPadding = innerPadding,
+                        updateViewModel = updateViewModel
+                    )
+                }
                 composable(Screen.ProfileSettings.route) {
                     ProfileSettingsScreen(
                         onNavigateBack = { navController.popBackStack() },

@@ -34,7 +34,7 @@ class UpdateViewModel @Inject constructor(
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = _state.asStateFlow()
 
-    fun checkForUpdate(autoInstall: Boolean = true) {
+    fun checkForUpdate(autoInstall: Boolean = true, notifyErrors: Boolean = false) {
         if (_state.value is UpdateState.Checking || _state.value is UpdateState.Downloading) return
         viewModelScope.launch(Dispatchers.IO) {
             _state.value = UpdateState.Checking
@@ -65,7 +65,11 @@ class UpdateViewModel @Inject constructor(
                 downloadAndInstall(asset.downloadUrl, release.tagName.trimStart('v'))
             } catch (e: Exception) {
                 Log.w(TAG, "Update check failed: ${e.message}")
-                _state.value = UpdateState.Idle
+                _state.value = if (notifyErrors) {
+                    UpdateState.Error("تعذر التحقق من التحديثات. تحقق من اتصال الإنترنت وحاول مرة أخرى.")
+                } else {
+                    UpdateState.Idle
+                }
             }
         }
     }
