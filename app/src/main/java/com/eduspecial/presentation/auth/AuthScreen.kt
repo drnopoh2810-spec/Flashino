@@ -58,8 +58,7 @@ fun AuthScreen(
     val webClientId by viewModel.webClientId.collectAsState()
     val googleSignInEnabled by viewModel.isGoogleSignInEnabled.collectAsState()
     val effectiveGoogleClientId = webClientId.trim()
-        .ifBlank { "991388117026-dmmg53umtu4tapp7mtv7poc5d5mkhnq3.apps.googleusercontent.com" }
-    val showGoogleButton = googleSignInEnabled || effectiveGoogleClientId.endsWith(".apps.googleusercontent.com")
+    val showGoogleButton = googleSignInEnabled
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()

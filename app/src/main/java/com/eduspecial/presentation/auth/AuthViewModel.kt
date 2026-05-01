@@ -40,11 +40,9 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     companion object {
         private const val AUTH_OPERATION_TIMEOUT_MS = 15_000L
-        private const val DEFAULT_GOOGLE_WEB_CLIENT_ID =
-            "991388117026-dmmg53umtu4tapp7mtv7poc5d5mkhnq3.apps.googleusercontent.com"
     }
     private val resolvedGoogleClientId =
-        remoteConfigManager.getGoogleWebClientId().trim().ifBlank { DEFAULT_GOOGLE_WEB_CLIENT_ID }
+        remoteConfigManager.getGoogleWebClientId().trim()
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()

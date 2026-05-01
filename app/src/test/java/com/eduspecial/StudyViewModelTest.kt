@@ -52,6 +52,7 @@ class StudyViewModelTest {
     private lateinit var studyQuotaManager: StudyQuotaManager
     private lateinit var ttsManager: TtsManager
     private lateinit var viewModel: StudyViewModel
+    private val testGroup = "Default"
 
     private fun makeCard(id: String) = Flashcard(
         id = id,
@@ -91,7 +92,8 @@ class StudyViewModelTest {
     }
 
     private fun createViewModel(cards: List<Flashcard> = emptyList()): StudyViewModel {
-        whenever(repository.getStudyQueue()).thenReturn(flowOf(cards))
+        whenever(repository.getGroupNames()).thenReturn(flowOf(listOf(testGroup)))
+        whenever(repository.getStudyQueue(any<List<String>>())).thenReturn(flowOf(cards))
         return StudyViewModel(
             repository,
             analyticsRepository,
