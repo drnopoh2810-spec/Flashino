@@ -22,7 +22,7 @@ class AdManager private constructor(
 ) {
     companion object {
         private const val TAG = "AdManager"
-        const val REWARD_UNLOCK_ADS_REQUIRED = 2
+        const val REWARD_UNLOCK_ADS_REQUIRED = 1
 
         @Volatile
         private var instance: AdManager? = null
@@ -118,6 +118,12 @@ class AdManager private constructor(
         onUnavailable: () -> Unit,
         onDismissed: () -> Unit = {}
     ) {
+        if (!AdMobConfig.isRewardedEnabled) {
+            Log.w(TAG, "Rewarded ads are disabled because AdMob config is incomplete")
+            onUnavailable()
+            return
+        }
+
         val ad = rewardedAd
         if (ad == null) {
             Log.d(TAG, "Rewarded not ready, queueing request until load completes")

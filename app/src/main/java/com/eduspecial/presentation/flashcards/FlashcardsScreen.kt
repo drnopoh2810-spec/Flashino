@@ -111,10 +111,10 @@ fun FlashcardsScreen(    navController: NavController,
 
         adManager.showRewardedUnlockSequence(
             activity = activity,
-            onProgress = { completed, required ->
+            onProgress = { _, _ ->
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        localizedText(context, "تمت مشاهدة $completed من $required إعلانات مطلوبة", "Watched $completed of $required required ads")
+                        localizedText(context, "تمت مشاهدة إعلان المكافأة", "Reward ad watched")
                     )
                 }
             },
@@ -1117,7 +1117,7 @@ private fun AddFlashcardDialog(
                                 enabled = isRewardedReady,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(localizedText("شاهد إعلانين لتزيد من بطاقات الإضافة (+15)", "Watch 2 ads to add more creation cards (+15)"))
+                                Text(localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)"))
                             }
                         }
                     }

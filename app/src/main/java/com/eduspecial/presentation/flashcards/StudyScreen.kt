@@ -69,10 +69,10 @@ fun StudyScreen(
 
         adManager.showRewardedUnlockSequence(
             activity = currentActivity,
-            onProgress = { completed, required ->
+            onProgress = { _, _ ->
                 scope.launch {
                     snackbarHostState.showSnackbar(
-                        localizedText(context, "تمت مشاهدة $completed من $required إعلانات مطلوبة", "Watched $completed of $required required ads")
+                        localizedText(context, "تمت مشاهدة إعلان المكافأة", "Reward ad watched")
                     )
                 }
             },
@@ -310,7 +310,7 @@ private fun DailyQuotaCard(
                     enabled = isRewardedReady,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(localizedText("شاهد إعلانين لتزيد من البطاقات (+10)", "Watch 2 ads to add more cards (+10)"))
+                    Text(localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)"))
                 }
             }
         }
@@ -415,7 +415,7 @@ private fun LowQuotaNotice(
                     onClick = onUnlockMore,
                     enabled = isRewardedReady
                 ) {
-                    Text(localizedText("+10 بعد إعلانين", "+10 after 2 ads"))
+                    Text(localizedText("+10 بعد إعلان", "+10 after an ad"))
                 }
             }
         }
