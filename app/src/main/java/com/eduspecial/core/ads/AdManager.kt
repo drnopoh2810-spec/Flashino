@@ -3,6 +3,8 @@ package com.eduspecial.core.ads
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.MainThread
 import com.google.android.gms.ads.AdRequest
@@ -22,6 +24,7 @@ class AdManager private constructor(
 ) {
     companion object {
         private const val TAG = "AdManager"
+        private const val REWARDED_RETRY_DELAY_MS = 30_000L
         const val REWARD_UNLOCK_ADS_REQUIRED = 1
 
         @Volatile
@@ -42,7 +45,13 @@ class AdManager private constructor(
     private var rewardedAd: RewardedAd? = null
     private var isRewardedLoading = false
     private var isInitialized = false
+    private var isRewardedRetryScheduled = false
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var pendingRewardedRequest: PendingRewardedRequest? = null
+    private val rewardedRetryRunnable = Runnable {
+        isRewardedRetryScheduled = false
+        preloadRewarded()
+    }
 
     private data class PendingRewardedRequest(
         val activityRef: WeakReference<Activity>,
@@ -61,7 +70,17 @@ class AdManager private constructor(
 
     @MainThread
     fun preloadRewarded() {
-        if (!AdMobConfig.isRewardedEnabled || isRewardedLoading || rewardedAd != null) return
+        if (!AdMobConfig.isRewardedEnabled) {
+            _rewardedReady.value = false
+            _rewardedLoading.value = false
+            return
+        }
+        if (isRewardedLoading || rewardedAd != null) return
+
+        if (isRewardedRetryScheduled) {
+            mainHandler.removeCallbacks(rewardedRetryRunnable)
+            isRewardedRetryScheduled = false
+        }
 
         isRewardedLoading = true
         _rewardedLoading.value = true
@@ -73,6 +92,8 @@ class AdManager private constructor(
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
                     Log.d(TAG, "Rewarded ad loaded")
+                    mainHandler.removeCallbacks(rewardedRetryRunnable)
+                    isRewardedRetryScheduled = false
                     isRewardedLoading = false
                     _rewardedLoading.value = false
                     rewardedAd = ad
@@ -106,6 +127,7 @@ class AdManager private constructor(
                         pendingRewardedRequest = null
                         pending.onUnavailable()
                     }
+                    scheduleRewardedRetry()
                 }
             }
         )
@@ -229,6 +251,12 @@ class AdManager private constructor(
             Log.d(TAG, "Reward earned")
             onRewardEarned()
         }
+    }
+
+    private fun scheduleRewardedRetry() {
+        if (!AdMobConfig.isRewardedEnabled || isRewardedLoading || rewardedAd != null || isRewardedRetryScheduled) return
+        isRewardedRetryScheduled = true
+        mainHandler.postDelayed(rewardedRetryRunnable, REWARDED_RETRY_DELAY_MS)
     }
 }
 

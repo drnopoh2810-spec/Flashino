@@ -93,6 +93,7 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
     val rewardedReady by adManager.rewardedReady.collectAsState()
+    val rewardedLoading by adManager.rewardedLoading.collectAsState()
 
     val hasData by remember { derivedStateOf { stats.totalFlashcards > 0 } }
     val goalProgress by remember {
@@ -209,6 +210,7 @@ fun HomeScreen(
                 item {
                     RewardedSupportCard(
                         isRewardedReady = rewardedReady,
+                        isRewardedLoading = rewardedLoading,
                         onClick = {
                             val activity = context.findActivity()
                             if (activity == null) {
@@ -225,7 +227,7 @@ fun HomeScreen(
                                     },
                                     onUnavailable = {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(localizedText(context, "إعلان الدعم غير جاهز بعد", "The support ad is not ready yet"))
+                                            snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان الدعم الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The support ad could not load right now. The app will try preparing it again."))
                                         }
                                     }
                                 )
@@ -563,6 +565,7 @@ private fun QuickActionCard(
 @Composable
 private fun RewardedSupportCard(
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onClick: () -> Unit
 ) {
     val themeTokens = EduThemeExtras.tokens
@@ -614,8 +617,17 @@ private fun RewardedSupportCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            FilledTonalButton(onClick = onClick) {
-                Text(if (isRewardedReady) localizedText("شاهد الآن", "Watch now") else localizedText("جاري التحضير", "Preparing"))
+            FilledTonalButton(
+                onClick = onClick,
+                enabled = isRewardedReady
+            ) {
+                Text(
+                    when {
+                        isRewardedReady -> localizedText("شاهد الآن", "Watch now")
+                        isRewardedLoading -> localizedText("جاري التحميل", "Loading")
+                        else -> localizedText("جاري التحضير", "Preparing")
+                    }
+                )
             }
         }
     }

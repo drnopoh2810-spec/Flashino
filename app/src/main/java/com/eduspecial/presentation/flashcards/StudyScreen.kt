@@ -55,6 +55,7 @@ fun StudyScreen(
     val activity = context as? android.app.Activity
     val scope = rememberCoroutineScope()
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
+    val rewardedReady by adManager.rewardedReady.collectAsState()
     val rewardedLoading by adManager.rewardedLoading.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -85,7 +86,7 @@ fun StudyScreen(
             },
             onUnavailable = {
                 scope.launch {
-                    snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet"))
+                    snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again."))
                 }
             }
         )
@@ -188,7 +189,8 @@ fun StudyScreen(
                     dailyGoal = uiState.dailyGoal,
                     dailyGoalCap = uiState.dailyGoalCap,
                     canUnlockMore = uiState.canUnlockDailyGoal,
-                    isRewardedReady = !rewardedLoading,
+                    isRewardedReady = rewardedReady,
+                    isRewardedLoading = rewardedLoading,
                     onUnlockMore = { requestDailyGoalUnlock() },
                     onSelectGroup = viewModel::selectGroup
                 )
@@ -208,7 +210,8 @@ fun StudyScreen(
                         LowQuotaNotice(
                             remainingToday = uiState.remainingToday,
                             canUnlockMore = uiState.canUnlockDailyGoal,
-                            isRewardedReady = !rewardedLoading,
+                            isRewardedReady = rewardedReady,
+                            isRewardedLoading = rewardedLoading,
                             onUnlockMore = { requestDailyGoalUnlock() }
                         )
                         Spacer(Modifier.height(10.dp))
@@ -277,6 +280,7 @@ private fun DailyQuotaCard(
     dailyGoalCap: Int,
     canUnlockMore: Boolean,
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onUnlockMore: () -> Unit
 ) {
     Card(
@@ -310,7 +314,13 @@ private fun DailyQuotaCard(
                     enabled = isRewardedReady,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)"))
+                    Text(
+                        when {
+                            isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
+                            isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
+                            else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                        }
+                    )
                 }
             }
         }
@@ -324,6 +334,7 @@ private fun GroupSelectionPlaceholder(
     dailyGoalCap: Int,
     canUnlockMore: Boolean,
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onUnlockMore: () -> Unit,
     onSelectGroup: (String) -> Unit
 ) {
@@ -352,6 +363,7 @@ private fun GroupSelectionPlaceholder(
             dailyGoalCap = dailyGoalCap,
             canUnlockMore = canUnlockMore,
             isRewardedReady = isRewardedReady,
+            isRewardedLoading = isRewardedLoading,
             onUnlockMore = onUnlockMore
         )
         Spacer(Modifier.height(20.dp))
@@ -379,6 +391,7 @@ private fun LowQuotaNotice(
     remainingToday: Int,
     canUnlockMore: Boolean,
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onUnlockMore: () -> Unit
 ) {
     Surface(
@@ -415,7 +428,13 @@ private fun LowQuotaNotice(
                     onClick = onUnlockMore,
                     enabled = isRewardedReady
                 ) {
-                    Text(localizedText("+10 بعد إعلان", "+10 after an ad"))
+                    Text(
+                        when {
+                            isRewardedReady -> localizedText("+10 بعد إعلان", "+10 after an ad")
+                            isRewardedLoading -> localizedText("تحميل الإعلان", "Loading ad")
+                            else -> localizedText("تجهيز الإعلان", "Preparing ad")
+                        }
+                    )
                 }
             }
         }

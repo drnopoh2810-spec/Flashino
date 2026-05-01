@@ -61,6 +61,7 @@ fun ProfileScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
+    val rewardedReady by adManager.rewardedReady.collectAsState()
     val rewardedLoading by adManager.rewardedLoading.collectAsState()
     val updateState by updateViewModel.state.collectAsState()
     var manualUpdateCheckRequested by remember { mutableStateOf(false) }
@@ -140,7 +141,7 @@ fun ProfileScreen(
                 }
             },
             onUnavailable = {
-                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
+                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again.")) }
             }
         )
     }
@@ -397,7 +398,8 @@ fun ProfileScreen(
             currentGoal = uiState.dailyGoal,
             maxUnlockedGoal = uiState.dailyGoalCap,
             canUnlockMore = uiState.canUnlockDailyGoal,
-            isRewardedReady = !rewardedLoading,
+            isRewardedReady = rewardedReady,
+            isRewardedLoading = rewardedLoading,
             onConfirm = { goal ->
                 viewModel.setDailyGoal(goal)
                 showGoalDialog = false
@@ -675,6 +677,7 @@ private fun DailyGoalDialog(
     maxUnlockedGoal: Int,
     canUnlockMore: Boolean,
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onConfirm: (Int) -> Unit,
     onUnlockMore: () -> Unit,
     onDismiss: () -> Unit
@@ -719,7 +722,13 @@ private fun DailyGoalDialog(
                         enabled = isRewardedReady,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)"))
+                        Text(
+                            when {
+                                isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
+                                isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
+                                else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                            }
+                        )
                     }
                 } else {
                     Text(

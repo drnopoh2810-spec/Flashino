@@ -95,6 +95,7 @@ fun FlashcardsScreen(    navController: NavController,
     val addSharedTermA11y = localizedText("إضافة مصطلح جديد للقاعدة المشتركة", "Add a new shared term")
     val scope = rememberCoroutineScope()
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
+    val rewardedReady by adManager.rewardedReady.collectAsState()
     val rewardedLoading by adManager.rewardedLoading.collectAsState()
     var showLibraryMenu by remember { mutableStateOf(false) }
     var pendingExportGroup by remember { mutableStateOf<String?>(null) }
@@ -125,7 +126,7 @@ fun FlashcardsScreen(    navController: NavController,
                 }
             },
             onUnavailable = {
-                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
+                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again.")) }
             }
         )
     }
@@ -430,7 +431,8 @@ fun FlashcardsScreen(    navController: NavController,
         AddFlashcardDialog(
             uiState = uiState,
             groupNames = groupNames,
-            isRewardedReady = !rewardedLoading,
+            isRewardedReady = rewardedReady,
+            isRewardedLoading = rewardedLoading,
             onTermChange = viewModel::onTermChange,
             onDefinitionChange = viewModel::onDefinitionChange,
             onGroupNameChange = viewModel::onGroupNameChange,
@@ -965,6 +967,7 @@ private fun AddFlashcardDialog(
     uiState: FlashcardsUiState,
     groupNames: List<String>,
     isRewardedReady: Boolean,
+    isRewardedLoading: Boolean,
     onTermChange: (String) -> Unit,
     onDefinitionChange: (String) -> Unit,
     onGroupNameChange: (String) -> Unit,
@@ -1117,7 +1120,13 @@ private fun AddFlashcardDialog(
                                 enabled = isRewardedReady,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)"))
+                                Text(
+                                    when {
+                                        isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)")
+                                        isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
+                                        else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                                    }
+                                )
                             }
                         }
                     }
