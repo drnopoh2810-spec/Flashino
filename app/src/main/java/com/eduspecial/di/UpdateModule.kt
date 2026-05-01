@@ -22,8 +22,9 @@ object UpdateModule {
     @Named("github_okhttp")
     fun provideGitHubOkHttpClient(): OkHttpClient =
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .callTimeout(45, TimeUnit.SECONDS)
             // GitHub API requires a User-Agent header — without it returns 403
             .addInterceptor { chain ->
                 val request: Request = chain.request().newBuilder()

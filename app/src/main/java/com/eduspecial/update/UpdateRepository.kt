@@ -3,6 +3,7 @@ package com.eduspecial.update
 import com.eduspecial.BuildConfig
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.delay
 
 @Singleton
 class UpdateRepository @Inject constructor(
@@ -23,6 +24,20 @@ class UpdateRepository @Inject constructor(
      * Throws only on genuine network/server errors (5xx, timeout, etc.)
      */
     suspend fun checkForUpdate(): GitHubRelease? {
+        var lastError: Exception? = null
+        repeat(3) { attempt ->
+            try {
+                return fetchLatestRelease()
+            } catch (e: Exception) {
+                lastError = e
+                if (!e.isRetryableUpdateError() || attempt == 2) throw e
+                delay(700L * (attempt + 1))
+            }
+        }
+        throw lastError ?: Exception("Unknown update check error")
+    }
+
+    private suspend fun fetchLatestRelease(): GitHubRelease? {
         val response = service.getLatestRelease(GITHUB_OWNER, GITHUB_REPO)
 
         // 404 = repo has no published releases yet → treat as up-to-date silently
@@ -30,7 +45,7 @@ class UpdateRepository @Inject constructor(
 
         // Any other non-success code is a real error
         if (!response.isSuccessful) {
-            throw Exception("GitHub API error: HTTP ${response.code()}")
+            throw GitHubUpdateHttpException(response.code())
         }
 
         val release = response.body() ?: return null
@@ -65,3 +80,8 @@ class UpdateRepository @Inject constructor(
         return false
     }
 }
+
+class GitHubUpdateHttpException(val statusCode: Int) : Exception("GitHub API error: HTTP $statusCode")
+
+private fun Exception.isRetryableUpdateError(): Boolean =
+    this !is GitHubUpdateHttpException || statusCode == 408 || statusCode == 429 || statusCode >= 500

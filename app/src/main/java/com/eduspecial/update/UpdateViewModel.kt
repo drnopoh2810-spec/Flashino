@@ -1,6 +1,8 @@
 package com.eduspecial.update
 
 import android.app.DownloadManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -13,6 +15,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,7 +70,7 @@ class UpdateViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.w(TAG, "Update check failed: ${e.message}")
                 _state.value = if (notifyErrors) {
-                    UpdateState.Error("تعذر التحقق من التحديثات. تحقق من اتصال الإنترنت وحاول مرة أخرى.")
+                    UpdateState.Error(e.toUpdateCheckMessage())
                 } else {
                     UpdateState.Idle
                 }
@@ -93,6 +97,43 @@ class UpdateViewModel @Inject constructor(
     private fun needsInstallPermission(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             !context.packageManager.canRequestPackageInstalls()
+
+    private fun Exception.toUpdateCheckMessage(): String {
+        val httpError = findCause(GitHubUpdateHttpException::class.java)
+        return when {
+            !hasValidatedInternet() ->
+                "الهاتف متصل بشبكة، لكن Android لا يؤكد وجود إنترنت فعلي الآن. جرّب فتح أي موقع ثم أعد المحاولة."
+            findCause(UnknownHostException::class.java) != null ->
+                "تعذر الوصول إلى GitHub من هذه الشبكة. جرّب شبكة Wi‑Fi أو بيانات مختلفة ثم أعد المحاولة."
+            findCause(SocketTimeoutException::class.java) != null ->
+                "انتهت مهلة الاتصال بـ GitHub. الاتصال موجود لكنه بطيء أو يمنع GitHub مؤقتًا."
+            httpError?.statusCode == 403 || httpError?.statusCode == 429 ->
+                "GitHub رفض طلب التحديث مؤقتًا بسبب كثرة الطلبات أو قيود الشبكة. حاول مرة أخرى بعد قليل."
+            httpError != null && httpError.statusCode >= 500 ->
+                "خوادم GitHub لا ترد بشكل صحيح الآن. حاول مرة أخرى بعد قليل."
+            httpError != null ->
+                "تعذر الوصول إلى صفحة التحديثات على GitHub. رمز الاستجابة: ${httpError.statusCode}."
+            else ->
+                "تعذر التحقق من التحديثات عبر GitHub الآن. حاول مرة أخرى أو جرّب شبكة مختلفة."
+        }
+    }
+
+    private fun hasValidatedInternet(): Boolean = runCatching {
+        val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+        val network = connectivityManager.activeNetwork ?: return@runCatching false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@runCatching false
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }.getOrDefault(true)
+
+    private fun <T : Throwable> Throwable.findCause(type: Class<T>): T? {
+        var current: Throwable? = this
+        while (current != null) {
+            if (type.isInstance(current)) return type.cast(current)
+            current = current.cause
+        }
+        return null
+    }
 
     private suspend fun downloadAndInstall(apkUrl: String, versionName: String) {
         _state.value = UpdateState.Downloading(0)
