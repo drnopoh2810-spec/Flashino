@@ -1,5 +1,7 @@
 package com.eduspecial
 
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,7 +45,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        applyTransientStatusBarBehavior()
+        applyFixedTransparentStatusBar()
         setContent {
             val themeMode by prefs.themeMode.collectAsState(initial = "system")
             val themePalette by prefs.themePalette.collectAsState(initial = "qusasa")
@@ -70,6 +72,9 @@ class MainActivity : ComponentActivity() {
                 darkTheme = darkTheme,
                 palette = themePalette
             ) {
+                LaunchedEffect(darkTheme) {
+                    applyFixedTransparentStatusBar()
+                }
                 Box(modifier = Modifier.fillMaxSize()) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -85,18 +90,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            applyTransientStatusBarBehavior()
-        }
-    }
-
-    private fun applyTransientStatusBarBehavior() {
+    private fun applyFixedTransparentStatusBar() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+        }
         WindowInsetsControllerCompat(window, window.decorView).apply {
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            hide(WindowInsetsCompat.Type.statusBars())
+            show(WindowInsetsCompat.Type.statusBars())
         }
     }
 }

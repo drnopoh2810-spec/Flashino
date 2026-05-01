@@ -1,5 +1,10 @@
 package com.eduspecial.presentation.navigation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.graphics.Color as AndroidColor
+import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -19,6 +24,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -53,6 +60,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.eduspecial.R
 import com.eduspecial.domain.model.FlashcardCategory
 import com.eduspecial.presentation.auth.AuthScreen
@@ -159,6 +169,11 @@ private val fullBleedRoutes = setOf(
     Screen.Permissions.route
 )
 
+private val darkStatusBarBackgroundRoutes = setOf(
+    Screen.Auth.route,
+    Screen.Home.route
+)
+
 @Composable
 fun EduSpecialNavHost(prefs: UserPreferencesDataStore) {
     val navController = rememberNavController()
@@ -207,6 +222,7 @@ fun EduSpecialNavHost(prefs: UserPreferencesDataStore) {
     }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        FixedTransparentStatusBar(currentRoute = currentRoute ?: startDestination)
         // Update check runs once after the start destination is resolved.
         val updateViewModel: UpdateViewModel = hiltViewModel()
         LaunchedEffect(startDestination) {
@@ -221,6 +237,7 @@ fun EduSpecialNavHost(prefs: UserPreferencesDataStore) {
         val constrainContentPane = currentRoute !in fullBleedRoutes
 
         Scaffold(
+            contentWindowInsets = WindowInsets(0),
             topBar = {
                 // API health banner — shown when backend is degraded or unavailable
                 ApiStatusBanner()
@@ -610,3 +627,29 @@ private fun ApiStatusBanner(
 class ApiStatusViewModel @javax.inject.Inject constructor(
     val healthMonitor: ApiHealthMonitor
 ) : androidx.lifecycle.ViewModel()
+
+@Composable
+private fun FixedTransparentStatusBar(currentRoute: String?) {
+    val context = LocalContext.current
+    val useDarkIcons = currentRoute !in darkStatusBarBackgroundRoutes
+
+    SideEffect {
+        val activity = context.findActivity() ?: return@SideEffect
+        WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+        activity.window.statusBarColor = AndroidColor.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            activity.window.isStatusBarContrastEnforced = false
+        }
+        WindowInsetsControllerCompat(activity.window, activity.window.decorView).apply {
+            show(WindowInsetsCompat.Type.statusBars())
+            isAppearanceLightStatusBars = useDarkIcons
+        }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
