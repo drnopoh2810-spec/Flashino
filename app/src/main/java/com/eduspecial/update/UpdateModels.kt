@@ -19,6 +19,15 @@ data class GitHubAsset(
     @SerializedName("size")                 val size: Long
 )
 
+data class UpdateManifest(
+    @SerializedName("tag_name")     val tagName: String?,
+    @SerializedName("version_name") val versionName: String,
+    @SerializedName("version_code") val versionCode: Int?,
+    @SerializedName("apk_name")     val apkName: String?,
+    @SerializedName("apk_url")      val apkUrl: String,
+    @SerializedName("apk_size")     val apkSize: Long?
+)
+
 sealed class UpdateState {
     object Idle : UpdateState()
     object Checking : UpdateState()

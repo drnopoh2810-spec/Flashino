@@ -12,12 +12,15 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.JsonParseException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
+import javax.net.ssl.SSLException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -107,6 +110,12 @@ class UpdateViewModel @Inject constructor(
                 "تعذر الوصول إلى GitHub من هذه الشبكة. جرّب شبكة Wi‑Fi أو بيانات مختلفة ثم أعد المحاولة."
             findCause(SocketTimeoutException::class.java) != null ->
                 "انتهت مهلة الاتصال بـ GitHub. الاتصال موجود لكنه بطيء أو يمنع GitHub مؤقتًا."
+            findCause(ConnectException::class.java) != null ->
+                "تعذر فتح اتصال مع GitHub من هذه الشبكة. جرّب شبكة مختلفة أو VPN موثوق."
+            findCause(SSLException::class.java) != null ->
+                "فشل الاتصال الآمن مع GitHub. تأكد من ضبط التاريخ والوقت أو جرّب شبكة مختلفة."
+            findCause(JsonParseException::class.java) != null ->
+                "وصل رد من GitHub لكن التطبيق لم يستطع قراءة بيانات التحديث. ثبّت آخر إصدار يدويًا مرة واحدة."
             httpError?.statusCode == 403 || httpError?.statusCode == 429 ->
                 "GitHub رفض طلب التحديث مؤقتًا بسبب كثرة الطلبات أو قيود الشبكة. حاول مرة أخرى بعد قليل."
             httpError != null && httpError.statusCode >= 500 ->
@@ -114,7 +123,7 @@ class UpdateViewModel @Inject constructor(
             httpError != null ->
                 "تعذر الوصول إلى صفحة التحديثات على GitHub. رمز الاستجابة: ${httpError.statusCode}."
             else ->
-                "تعذر التحقق من التحديثات عبر GitHub الآن. حاول مرة أخرى أو جرّب شبكة مختلفة."
+                "تعذر التحقق من التحديثات عبر GitHub الآن (${rootCauseName()}). حاول مرة أخرى أو ثبّت آخر إصدار يدويًا."
         }
     }
 
@@ -133,6 +142,14 @@ class UpdateViewModel @Inject constructor(
             current = current.cause
         }
         return null
+    }
+
+    private fun Throwable.rootCauseName(): String {
+        var current: Throwable = this
+        while (current.cause != null) {
+            current = current.cause!!
+        }
+        return current.javaClass.simpleName.ifBlank { "خطأ غير معروف" }
     }
 
     private suspend fun downloadAndInstall(apkUrl: String, versionName: String) {

@@ -9,5 +9,9 @@
         <!-- Algolia Search -->
         <domain includeSubdomains="true">algolia.net</domain>
         <domain includeSubdomains="true">algolianet.com</domain>
+        <!-- GitHub release updates -->
+        <domain includeSubdomains="true">github.com</domain>
+        <domain includeSubdomains="true">api.github.com</domain>
+        <domain includeSubdomains="true">githubusercontent.com</domain>
     </domain-config>
 </network-security-config>

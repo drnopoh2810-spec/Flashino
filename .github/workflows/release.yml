@@ -159,6 +159,29 @@ jobs:
       - name: Build release APK
         run: ./gradlew :app:assembleRelease --stacktrace
 
+      - name: Create update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK_PATH="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)"
+          test -n "$APK_PATH"
+          APK_NAME="$(basename "$APK_PATH")"
+          APK_SIZE="$(stat -c%s "$APK_PATH")"
+          VERSION_NAME="${{ steps.bump.outputs.version_name }}"
+          VERSION_CODE="${{ steps.bump.outputs.version_code }}"
+          TAG="v${VERSION_NAME}"
+          APK_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${APK_NAME}"
+          cat > app/build/outputs/apk/release/flashino-update.json <<EOF
+          {
+            "tag_name": "${TAG}",
+            "version_name": "${VERSION_NAME}",
+            "version_code": ${VERSION_CODE},
+            "apk_name": "${APK_NAME}",
+            "apk_url": "${APK_URL}",
+            "apk_size": ${APK_SIZE}
+          }
+          EOF
+
       - name: Create git tag
         shell: bash
         run: |
@@ -176,4 +199,5 @@ jobs:
           generate_release_notes: true
           files: |
             app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/flashino-update.json
 

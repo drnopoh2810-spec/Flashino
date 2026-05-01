@@ -12,6 +12,8 @@ class UpdateRepository @Inject constructor(
     companion object {
         const val GITHUB_OWNER = "drnopoh2810-spec"
         const val GITHUB_REPO  = "Flashino"
+        private const val UPDATE_MANIFEST_URL =
+            "https://github.com/drnopoh2810-spec/Flashino/releases/latest/download/flashino-update.json"
     }
 
     /**
@@ -38,6 +40,10 @@ class UpdateRepository @Inject constructor(
     }
 
     private suspend fun fetchLatestRelease(): GitHubRelease? {
+        runCatching { fetchLatestManifestRelease() }
+            .getOrNull()
+            ?.let { return it }
+
         val response = service.getLatestRelease(GITHUB_OWNER, GITHUB_REPO)
 
         // 404 = repo has no published releases yet → treat as up-to-date silently
@@ -57,6 +63,36 @@ class UpdateRepository @Inject constructor(
         val currentVersion = BuildConfig.VERSION_NAME
 
         return if (isNewerVersion(latestVersion, currentVersion)) release else null
+    }
+
+    private suspend fun fetchLatestManifestRelease(): GitHubRelease? {
+        val response = service.getLatestManifest(UPDATE_MANIFEST_URL)
+        if (response.code() == 404) return null
+        if (!response.isSuccessful) {
+            throw GitHubUpdateHttpException(response.code())
+        }
+
+        val manifest = response.body() ?: return null
+        val latestVersion = manifest.versionName
+        if (!isNewerVersion(latestVersion, BuildConfig.VERSION_NAME)) return null
+
+        val tagName = manifest.tagName?.takeIf { it.isNotBlank() } ?: "v$latestVersion"
+        val apkName = manifest.apkName?.takeIf { it.isNotBlank() } ?: "Flashino-v$latestVersion-release.apk"
+        return GitHubRelease(
+            tagName = tagName,
+            name = "Flashino $tagName",
+            body = null,
+            assets = listOf(
+                GitHubAsset(
+                    name = apkName,
+                    downloadUrl = manifest.apkUrl,
+                    contentType = "application/vnd.android.package-archive",
+                    size = manifest.apkSize ?: 0L
+                )
+            ),
+            prerelease = false,
+            draft = false
+        )
     }
 
     /** Finds the first APK asset in a release */
