@@ -4,11 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "cryptography==42.0.5",
+    "cryptography==46.0.7",
     "fastapi==0.115.12",
     "google-auth==2.40.1",
     "httpx==0.28.1",
-    "requests==2.32.5",
+    "requests==2.33.0",
     "uvicorn==0.34.2",
     "websockets==15.0.1",
 ]
