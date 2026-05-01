@@ -22,6 +22,7 @@ class AdManager private constructor(
 ) {
     companion object {
         private const val TAG = "AdManager"
+        const val REWARD_UNLOCK_ADS_REQUIRED = 2
 
         @Volatile
         private var instance: AdManager? = null
@@ -137,6 +138,61 @@ class AdManager private constructor(
             onUnavailable = onUnavailable,
             onDismissed = onDismissed
         )
+    }
+
+    @MainThread
+    fun showRewardedUnlockSequence(
+        activity: Activity,
+        requiredRewards: Int = REWARD_UNLOCK_ADS_REQUIRED,
+        onProgress: (completed: Int, required: Int) -> Unit = { _, _ -> },
+        onRewardEarned: () -> Unit,
+        onUnavailable: () -> Unit,
+        onDismissed: () -> Unit = {}
+    ) {
+        val required = requiredRewards.coerceAtLeast(1)
+        var completed = 0
+        var stopped = false
+
+        fun showNext() {
+            if (stopped) return
+
+            var earnedThisAd = false
+            showRewardedAd(
+                activity = activity,
+                onRewardEarned = {
+                    earnedThisAd = true
+                },
+                onUnavailable = {
+                    if (!stopped) {
+                        stopped = true
+                        onUnavailable()
+                    }
+                },
+                onDismissed = {
+                    if (stopped) return@showRewardedAd
+
+                    if (!earnedThisAd) {
+                        stopped = true
+                        onDismissed()
+                        return@showRewardedAd
+                    }
+
+                    completed += 1
+                    Log.d(TAG, "Rewarded unlock progress: $completed/$required")
+                    onProgress(completed, required)
+
+                    if (completed >= required) {
+                        stopped = true
+                        onRewardEarned()
+                        onDismissed()
+                    } else {
+                        showNext()
+                    }
+                }
+            )
+        }
+
+        showNext()
     }
 
     @MainThread

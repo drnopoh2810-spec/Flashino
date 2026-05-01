@@ -13,11 +13,11 @@ data class AdConfig(
 
 object AdConfigs {
     val current = AdConfig(
-        appId = BuildConfig.ADMOB_APP_ID,
-        nativeAdUnitId = BuildConfig.ADMOB_NATIVE_AD_UNIT_ID,
-        rewardedAdUnitId = BuildConfig.ADMOB_REWARDED_AD_UNIT_ID,
+        appId = AdMobConfig.appId,
+        nativeAdUnitId = AdMobConfig.nativeAdUnitId,
+        rewardedAdUnitId = AdMobConfig.rewardedAdUnitId,
         nativeFrequency = BuildConfig.ADMOB_NATIVE_FREQUENCY.coerceAtLeast(5),
-        nativeEnabled = BuildConfig.ADMOB_NATIVE_AD_UNIT_ID.isNotBlank(),
-        rewardedEnabled = BuildConfig.ADMOB_REWARDED_AD_UNIT_ID.isNotBlank()
+        nativeEnabled = AdMobConfig.isNativeEnabled,
+        rewardedEnabled = AdMobConfig.isRewardedEnabled
     )
 }

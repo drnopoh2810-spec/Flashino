@@ -10,6 +10,7 @@
     <string name="nav_qa">الأسئلة</string>
     <string name="nav_search">البحث</string>
     <string name="nav_profile">حسابي</string>
+    <string name="ad_label">إعلان</string>
 
     <string name="login">تسجيل الدخول</string>
     <string name="register">حساب جديد</string>

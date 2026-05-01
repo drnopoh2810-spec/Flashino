@@ -56,6 +56,40 @@ fun StudyScreen(
     val scope = rememberCoroutineScope()
     val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
     val rewardedLoading by adManager.rewardedLoading.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    fun requestDailyGoalUnlock() {
+        val currentActivity = activity
+        if (currentActivity == null) {
+            scope.launch {
+                snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now"))
+            }
+            return
+        }
+
+        adManager.showRewardedUnlockSequence(
+            activity = currentActivity,
+            onProgress = { completed, required ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        localizedText(context, "تمت مشاهدة $completed من $required إعلانات مطلوبة", "Watched $completed of $required required ads")
+                    )
+                }
+            },
+            onRewardEarned = {
+                scope.launch {
+                    if (viewModel.unlockDailyGoalStep()) {
+                        snackbarHostState.showSnackbar(localizedText(context, "تم فتح 10 بطاقات إضافية اليوم", "Unlocked 10 extra cards today"))
+                    }
+                }
+            },
+            onUnavailable = {
+                scope.launch {
+                    snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet"))
+                }
+            }
+        )
+    }
 
     // Trigger in-app review when session completes with meaningful progress
     val sessionComplete = uiState.currentCard == null && uiState.reviewedThisSession > 0
@@ -75,6 +109,7 @@ fun StudyScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -154,17 +189,7 @@ fun StudyScreen(
                     dailyGoalCap = uiState.dailyGoalCap,
                     canUnlockMore = uiState.canUnlockDailyGoal,
                     isRewardedReady = !rewardedLoading,
-                    onUnlockMore = {
-                        if (activity == null) return@GroupSelectionPlaceholder
-                        adManager.showRewardedAd(
-                            activity = activity,
-                            onRewardEarned = {
-                                scope.launch { viewModel.unlockDailyGoalStep() }
-                            },
-                            onUnavailable = {},
-                            onDismissed = {}
-                        )
-                    },
+                    onUnlockMore = { requestDailyGoalUnlock() },
                     onSelectGroup = viewModel::selectGroup
                 )
             } else if (uiState.currentCard != null) {
@@ -184,17 +209,7 @@ fun StudyScreen(
                             remainingToday = uiState.remainingToday,
                             canUnlockMore = uiState.canUnlockDailyGoal,
                             isRewardedReady = !rewardedLoading,
-                            onUnlockMore = {
-                                if (activity == null) return@LowQuotaNotice
-                                adManager.showRewardedAd(
-                                    activity = activity,
-                                    onRewardEarned = {
-                                        scope.launch { viewModel.unlockDailyGoalStep() }
-                                    },
-                                    onUnavailable = {},
-                                    onDismissed = {}
-                                )
-                            }
+                            onUnlockMore = { requestDailyGoalUnlock() }
                         )
                         Spacer(Modifier.height(10.dp))
                     }
@@ -295,7 +310,7 @@ private fun DailyQuotaCard(
                     enabled = isRewardedReady,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)"))
+                    Text(localizedText("شاهد إعلانين لتزيد من البطاقات (+10)", "Watch 2 ads to add more cards (+10)"))
                 }
             }
         }
@@ -400,7 +415,7 @@ private fun LowQuotaNotice(
                     onClick = onUnlockMore,
                     enabled = isRewardedReady
                 ) {
-                    Text("+10")
+                    Text(localizedText("+10 بعد إعلانين", "+10 after 2 ads"))
                 }
             }
         }

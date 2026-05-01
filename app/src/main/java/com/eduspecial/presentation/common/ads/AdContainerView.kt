@@ -1,6 +1,7 @@
 package com.eduspecial.presentation.common.ads
 
 import android.view.LayoutInflater
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,8 +34,10 @@ fun AdContainerView(
     LaunchedEffect(slotKey) {
         if (!AdMobConfig.isNativeEnabled || nativeAd != null || loadFailed) return@LaunchedEffect
 
+        Log.d("AdContainerView", "Loading native ad slot=$slotKey unit=${AdMobConfig.nativeAdUnitId}")
         AdLoader.Builder(context, AdMobConfig.nativeAdUnitId)
             .forNativeAd { loadedAd ->
+                Log.d("AdContainerView", "Native ad loaded slot=$slotKey")
                 nativeAd?.destroy()
                 nativeAd = loadedAd
                 loadFailed = false
@@ -46,6 +49,7 @@ fun AdContainerView(
             )
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
+                    Log.w("AdContainerView", "Native ad failed slot=$slotKey code=${error.code} message=${error.message}")
                     nativeAd?.destroy()
                     nativeAd = null
                     loadFailed = true

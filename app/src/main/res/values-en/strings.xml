@@ -10,6 +10,7 @@
     <string name="nav_qa">Questions</string>
     <string name="nav_search">Search</string>
     <string name="nav_profile">Account</string>
+    <string name="ad_label">Ad</string>
 
     <string name="login">Sign in</string>
     <string name="register">Create account</string>

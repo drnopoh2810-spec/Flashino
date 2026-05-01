@@ -102,6 +102,34 @@ fun FlashcardsScreen(    navController: NavController,
     var pendingExportFilename by remember { mutableStateOf<String?>(null) }
     var showExportGroupPicker by remember { mutableStateOf(false) }
 
+    fun requestCreationUnlock() {
+        val activity = context.findActivity()
+        if (activity == null) {
+            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
+            return
+        }
+
+        adManager.showRewardedUnlockSequence(
+            activity = activity,
+            onProgress = { completed, required ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        localizedText(context, "تمت مشاهدة $completed من $required إعلانات مطلوبة", "Watched $completed of $required required ads")
+                    )
+                }
+            },
+            onRewardEarned = {
+                scope.launch {
+                    viewModel.unlockDailyCreationStep()
+                    snackbarHostState.showSnackbar(localizedText(context, "تم فتح 15 بطاقة إضافية لليوم", "Unlocked 15 extra cards for today"))
+                }
+            },
+            onUnavailable = {
+                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
+            }
+        )
+    }
+
     val importCsvLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -410,25 +438,7 @@ fun FlashcardsScreen(    navController: NavController,
                 viewModel.submitFlashcardWithMedia(mediaUrl, mediaType)
                 // Dialog closes automatically when isSubmitting goes false (see LaunchedEffect below)
             },
-            onUnlockMore = {
-                val activity = context.findActivity()
-                if (activity == null) {
-                    scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
-                } else {
-                    adManager.showRewardedAd(
-                        activity = activity,
-                        onRewardEarned = {
-                            scope.launch {
-                                viewModel.unlockDailyCreationStep()
-                                snackbarHostState.showSnackbar(localizedText(context, "تم فتح 15 بطاقة إضافية لليوم", "Unlocked 15 extra cards for today"))
-                            }
-                        },
-                        onUnavailable = {
-                            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
-                        }
-                    )
-                }
-            },
+            onUnlockMore = { requestCreationUnlock() },
             onDismiss = {
                 showAddDialog = false
                 viewModel.clearError()
@@ -1104,9 +1114,10 @@ private fun AddFlashcardDialog(
                             )
                             FilledTonalButton(
                                 onClick = onUnlockMore,
+                                enabled = isRewardedReady,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)"))
+                                Text(localizedText("شاهد إعلانين لتزيد من بطاقات الإضافة (+15)", "Watch 2 ads to add more creation cards (+15)"))
                             }
                         }
                     }

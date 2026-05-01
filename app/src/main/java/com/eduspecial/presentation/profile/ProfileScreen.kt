@@ -85,6 +85,35 @@ fun ProfileScreen(
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
 
+    fun requestDailyGoalUnlock() {
+        val activity = context.findActivity()
+        if (activity == null) {
+            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
+            return
+        }
+
+        adManager.showRewardedUnlockSequence(
+            activity = activity,
+            onProgress = { completed, required ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        localizedText(context, "تمت مشاهدة $completed من $required إعلانات مطلوبة", "Watched $completed of $required required ads")
+                    )
+                }
+            },
+            onRewardEarned = {
+                scope.launch {
+                    if (viewModel.unlockDailyGoalStep()) {
+                        snackbarHostState.showSnackbar(localizedText(context, "تم فتح 10 بطاقات إضافية اليوم", "Unlocked 10 extra cards today"))
+                    }
+                }
+            },
+            onUnavailable = {
+                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
+            }
+        )
+    }
+
     // Password change feedback
     LaunchedEffect(uiState.passwordSuccess) {
         if (uiState.passwordSuccess) {
@@ -315,26 +344,7 @@ fun ProfileScreen(
                 viewModel.setDailyGoal(goal)
                 showGoalDialog = false
             },
-            onUnlockMore = {
-                val activity = context.findActivity()
-                if (activity == null) {
-                    scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
-                } else {
-                    adManager.showRewardedAd(
-                        activity = activity,
-                        onRewardEarned = {
-                            scope.launch {
-                                if (viewModel.unlockDailyGoalStep()) {
-                                    snackbarHostState.showSnackbar(localizedText(context, "تم فتح 10 بطاقات إضافية اليوم", "Unlocked 10 extra cards today"))
-                                }
-                            }
-                        },
-                        onUnavailable = {
-                            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "إعلان المكافأة غير جاهز بعد", "The rewarded ad is not ready yet")) }
-                        }
-                    )
-                }
-            },
+            onUnlockMore = { requestDailyGoalUnlock() },
             onDismiss = { showGoalDialog = false }
         )
     }
@@ -651,7 +661,7 @@ private fun DailyGoalDialog(
                         enabled = isRewardedReady,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)"))
+                        Text(localizedText("شاهد إعلانين لتزيد من البطاقات (+10)", "Watch 2 ads to add more cards (+10)"))
                     }
                 } else {
                     Text(
