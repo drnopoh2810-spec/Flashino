@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.eduspecial.R
 import com.eduspecial.domain.model.FlashcardCategory
 import com.eduspecial.presentation.auth.AuthScreen
 import com.eduspecial.presentation.bookmarks.BookmarksScreen
@@ -124,6 +126,16 @@ val bottomNavItems = listOf(
     Screen.Search,
     Screen.Profile
 )
+
+@Composable
+private fun Screen.localizedBottomNavLabel(): String = when (this) {
+    Screen.Home -> stringResource(R.string.nav_home)
+    Screen.Flashcards -> stringResource(R.string.nav_flashcards)
+    Screen.QA -> stringResource(R.string.nav_qa)
+    Screen.Search -> stringResource(R.string.nav_search)
+    Screen.Profile -> stringResource(R.string.nav_profile)
+    else -> label
+}
 
 private val noBottomBarRoutes = setOf(
     Screen.Auth.route,
@@ -405,6 +417,7 @@ private fun RowScope.MainNavigationBarItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val label = screen.localizedBottomNavLabel()
     val interactionSource = remember(screen.route) { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val iconScale by animateFloatAsState(
@@ -426,7 +439,7 @@ private fun RowScope.MainNavigationBarItem(
         icon = {
             Icon(
                 screen.icon,
-                contentDescription = screen.label,
+                contentDescription = label,
                 modifier = Modifier
                     .size(24.dp)
                     .graphicsLayer {
@@ -438,7 +451,7 @@ private fun RowScope.MainNavigationBarItem(
         },
         label = {
             Text(
-                screen.label,
+                label,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1
             )
@@ -485,6 +498,7 @@ private fun MainNavigationRailItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val label = screen.localizedBottomNavLabel()
     val interactionSource = remember(screen.route) { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val iconScale by animateFloatAsState(
@@ -501,7 +515,7 @@ private fun MainNavigationRailItem(
         icon = {
             Icon(
                 screen.icon,
-                contentDescription = screen.label,
+                contentDescription = label,
                 modifier = Modifier
                     .size(24.dp)
                     .graphicsLayer {
@@ -512,7 +526,7 @@ private fun MainNavigationRailItem(
         },
         label = {
             Text(
-                screen.label,
+                label,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1
             )

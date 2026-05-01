@@ -7,9 +7,9 @@
     <string name="nav_home">Home</string>
     <string name="nav_flashcards">Cards</string>
     <string name="nav_study">Study</string>
-    <string name="nav_qa">Q&amp;A</string>
+    <string name="nav_qa">Questions</string>
     <string name="nav_search">Search</string>
-    <string name="nav_profile">Profile</string>
+    <string name="nav_profile">Account</string>
 
     <string name="login">Sign in</string>
     <string name="register">Create account</string>
