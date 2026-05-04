@@ -1,12 +1,15 @@
 package com.eduspecial.core.ads
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.MainThread
+import com.eduspecial.utils.NotificationScheduler
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
@@ -25,6 +28,7 @@ class AdManager private constructor(
     companion object {
         private const val TAG = "AdManager"
         private const val REWARDED_RETRY_DELAY_MS = 30_000L
+        private const val REWARDED_AVAILABLE_NOTIFICATION_COOLDOWN_MS = 60 * 60 * 1000L
         const val REWARD_UNLOCK_ADS_REQUIRED = 1
 
         @Volatile
@@ -46,11 +50,36 @@ class AdManager private constructor(
     private var isRewardedLoading = false
     private var isInitialized = false
     private var isRewardedRetryScheduled = false
+    private var isLifecycleRegistered = false
+    private var startedActivities = 0
+    private var isAppForeground = false
+    private var lastRewardedAvailabilityNotificationAt = 0L
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val notificationScheduler = NotificationScheduler(appContext)
     private var pendingRewardedRequest: PendingRewardedRequest? = null
     private val rewardedRetryRunnable = Runnable {
         isRewardedRetryScheduled = false
         preloadRewarded()
+    }
+    private val activityLifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+
+        override fun onActivityStarted(activity: Activity) {
+            startedActivities += 1
+            isAppForeground = true
+        }
+
+        override fun onActivityResumed(activity: Activity) = Unit
+        override fun onActivityPaused(activity: Activity) = Unit
+
+        override fun onActivityStopped(activity: Activity) {
+            startedActivities = (startedActivities - 1).coerceAtLeast(0)
+            isAppForeground = startedActivities > 0
+            notifyRewardedAdAvailableIfBackground()
+        }
+
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+        override fun onActivityDestroyed(activity: Activity) = Unit
     }
 
     private data class PendingRewardedRequest(
@@ -63,6 +92,7 @@ class AdManager private constructor(
     @MainThread
     fun initialize() {
         if (isInitialized || AdMobConfig.appId.isBlank()) return
+        registerAppVisibilityCallbacks()
         MobileAds.initialize(appContext)
         isInitialized = true
         preloadRewarded()
@@ -101,7 +131,7 @@ class AdManager private constructor(
                     pendingRewardedRequest?.let { pending ->
                         pendingRewardedRequest = null
                         val activity = pending.activityRef.get()
-                        if (activity != null) {
+                        if (activity != null && isAppForeground) {
                             showLoadedRewardedAd(
                                 activity = activity,
                                 ad = ad,
@@ -110,11 +140,9 @@ class AdManager private constructor(
                                 onDismissed = pending.onDismissed
                             )
                         } else {
-                            rewardedAd = null
-                            _rewardedReady.value = false
-                            preloadRewarded()
+                            notifyRewardedAdAvailableIfBackground()
                         }
-                    }
+                    } ?: notifyRewardedAdAvailableIfBackground()
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
@@ -257,6 +285,21 @@ class AdManager private constructor(
         if (!AdMobConfig.isRewardedEnabled || isRewardedLoading || rewardedAd != null || isRewardedRetryScheduled) return
         isRewardedRetryScheduled = true
         mainHandler.postDelayed(rewardedRetryRunnable, REWARDED_RETRY_DELAY_MS)
+    }
+
+    private fun registerAppVisibilityCallbacks() {
+        if (isLifecycleRegistered) return
+        val application = appContext as? Application ?: return
+        application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
+        isLifecycleRegistered = true
+    }
+
+    private fun notifyRewardedAdAvailableIfBackground() {
+        if (isAppForeground || rewardedAd == null) return
+        val now = System.currentTimeMillis()
+        if (now - lastRewardedAvailabilityNotificationAt < REWARDED_AVAILABLE_NOTIFICATION_COOLDOWN_MS) return
+        lastRewardedAvailabilityNotificationAt = now
+        notificationScheduler.showRewardedAdAvailable()
     }
 }
 

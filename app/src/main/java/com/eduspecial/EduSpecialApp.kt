@@ -54,14 +54,23 @@ class EduSpecialApp : Application(), Configuration.Provider {
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val reminderChannel = NotificationChannel(
                 NotificationScheduler.CHANNEL_ID,
                 getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = getString(R.string.notification_channel_description)
             }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+            val rewardedAdChannel = NotificationChannel(
+                NotificationScheduler.REWARDED_AD_CHANNEL_ID,
+                getString(R.string.rewarded_ad_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = getString(R.string.rewarded_ad_channel_description)
+            }
+            getSystemService(NotificationManager::class.java).createNotificationChannels(
+                listOf(reminderChannel, rewardedAdChannel)
+            )
         }
     }
 }

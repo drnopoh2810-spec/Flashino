@@ -207,4 +207,8 @@
     <string name="study_reminder_title">Time to review!</string>
     <string name="study_reminder_due_body">You have %1$d cards to review today</string>
     <string name="study_reminder_generic_body">Keep your progress going and review your cards today</string>
+    <string name="rewarded_ad_channel_name">Reward ads</string>
+    <string name="rewarded_ad_channel_description">Alerts when an optional reward ad is available</string>
+    <string name="rewarded_ad_available_title">Reward ad available now</string>
+    <string name="rewarded_ad_available_body">Open Flashino when you want to watch a reward ad and increase your daily limit.</string>
 </resources>

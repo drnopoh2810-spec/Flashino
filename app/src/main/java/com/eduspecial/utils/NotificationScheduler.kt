@@ -1,9 +1,12 @@
 package com.eduspecial.utils
 
+import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.work.*
@@ -21,6 +24,7 @@ class NotificationScheduler @Inject constructor(
     companion object {
         const val REMINDER_WORK_NAME = "EduSpecial_StudyReminder"
         const val CHANNEL_ID = "study_reminder_channel"
+        const val REWARDED_AD_CHANNEL_ID = "rewarded_ad_channel"
     }
 
     fun schedule(enabled: Boolean, reminderTimeMillis: Long) {
@@ -60,11 +64,27 @@ class NotificationScheduler @Inject constructor(
         )
     }
 
+    fun showRewardedAdAvailable() {
+        showNotification(
+            notificationId = 1003,
+            title = context.getString(R.string.rewarded_ad_available_title),
+            body = context.getString(R.string.rewarded_ad_available_body),
+            channelId = REWARDED_AD_CHANNEL_ID
+        )
+    }
+
     private fun showNotification(
         notificationId: Int,
         title: String,
-        body: String
+        body: String,
+        channelId: String = CHANNEL_ID
     ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
@@ -75,7 +95,7 @@ class NotificationScheduler @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
