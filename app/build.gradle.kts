@@ -72,7 +72,7 @@ android {
         buildConfigField(
             "String",
             "ADMOB_REWARDED_AD_UNIT_ID",
-            secret("ADMOB_REWARDED_AD_UNIT_ID", "ca-app-pub-3940256099942544/5224354917").asBuildConfigString()
+            secret("ADMOB_REWARDED_AD_UNIT_ID", "ca-app-pub-4542845209765254/8164523523").asBuildConfigString()
         )
         buildConfigField(
             "int",
