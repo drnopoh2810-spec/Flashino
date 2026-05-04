@@ -311,14 +311,13 @@ private fun DailyQuotaCard(
             if (canUnlockMore) {
                 FilledTonalButton(
                     onClick = onUnlockMore,
-                    enabled = isRewardedReady,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         when {
                             isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
                             isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                            else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                            else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
                         }
                     )
                 }
@@ -425,14 +424,13 @@ private fun LowQuotaNotice(
             }
             if (canUnlockMore) {
                 TextButton(
-                    onClick = onUnlockMore,
-                    enabled = isRewardedReady
+                    onClick = onUnlockMore
                 ) {
                     Text(
                         when {
                             isRewardedReady -> localizedText("+10 بعد إعلان", "+10 after an ad")
                             isRewardedLoading -> localizedText("تحميل الإعلان", "Loading ad")
-                            else -> localizedText("تجهيز الإعلان", "Preparing ad")
+                            else -> localizedText("جهز الإعلان", "Prepare ad")
                         }
                     )
                 }
@@ -790,4 +788,3 @@ private fun StudyCompletePlaceholder(mastered: Int, reviewed: Int, onRestart: ()
         )
     }
 }
-

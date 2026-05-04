@@ -1117,14 +1117,13 @@ private fun AddFlashcardDialog(
                             )
                             FilledTonalButton(
                                 onClick = onUnlockMore,
-                                enabled = isRewardedReady,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     when {
                                         isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)")
                                         isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                                        else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                                        else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
                                     }
                                 )
                             }

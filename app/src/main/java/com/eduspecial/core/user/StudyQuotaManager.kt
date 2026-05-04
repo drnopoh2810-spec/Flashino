@@ -29,7 +29,6 @@ class StudyQuotaManager @Inject constructor(
     companion object {
         const val BASE_DAILY_GOAL = 20
         const val DAILY_GOAL_STEP = 10
-        const val MAX_DAILY_GOAL = 100
         const val BASE_DAILY_CREATIONS = 20
         const val DAILY_CREATION_STEP = 15
     }
@@ -37,7 +36,7 @@ class StudyQuotaManager @Inject constructor(
     suspend fun getDailyGoalQuotaState(): DailyGoalQuotaState {
         syncDailyResets()
         val (_, unlocks) = prefs.getDailyGoalUnlockMeta()
-        val cap = (BASE_DAILY_GOAL + unlocks * DAILY_GOAL_STEP).coerceAtMost(MAX_DAILY_GOAL)
+        val cap = BASE_DAILY_GOAL + unlocks * DAILY_GOAL_STEP
         val storedGoal = prefs.dailyGoal.first()
         val selected = storedGoal.coerceIn(BASE_DAILY_GOAL, cap)
         if (selected != storedGoal) {
@@ -47,7 +46,7 @@ class StudyQuotaManager @Inject constructor(
             selectedGoal = selected,
             unlockedCap = cap,
             unlocksUsedToday = unlocks,
-            canUnlockMore = cap < MAX_DAILY_GOAL
+            canUnlockMore = true
         )
     }
 
@@ -61,8 +60,8 @@ class StudyQuotaManager @Inject constructor(
         syncDailyResets()
         val today = LocalDate.now().toString()
         val (_, unlocks) = prefs.getDailyGoalUnlockMeta()
-        val nextCap = (BASE_DAILY_GOAL + (unlocks + 1) * DAILY_GOAL_STEP).coerceAtMost(MAX_DAILY_GOAL)
-        val nextUnlockCount = ((nextCap - BASE_DAILY_GOAL) / DAILY_GOAL_STEP).coerceAtLeast(0)
+        val nextUnlockCount = unlocks + 1
+        val nextCap = BASE_DAILY_GOAL + nextUnlockCount * DAILY_GOAL_STEP
         prefs.setDailyGoalUnlockMeta(today, nextUnlockCount)
         prefs.setDailyGoal(nextCap)
         return getDailyGoalQuotaState()

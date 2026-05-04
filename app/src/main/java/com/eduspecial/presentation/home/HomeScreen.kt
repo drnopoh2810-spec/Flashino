@@ -618,14 +618,13 @@ private fun RewardedSupportCard(
                 )
             }
             FilledTonalButton(
-                onClick = onClick,
-                enabled = isRewardedReady
+                onClick = onClick
             ) {
                 Text(
                     when {
                         isRewardedReady -> localizedText("شاهد الآن", "Watch now")
                         isRewardedLoading -> localizedText("جاري التحميل", "Loading")
-                        else -> localizedText("جاري التحضير", "Preparing")
+                        else -> localizedText("اضغط للتجهيز", "Tap to prepare")
                     }
                 )
             }
@@ -669,4 +668,3 @@ private fun CategoryListItem(category: HomeCategoryItem, onClick: () -> Unit) {
     )
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
-

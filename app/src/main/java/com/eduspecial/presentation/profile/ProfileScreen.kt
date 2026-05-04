@@ -719,23 +719,16 @@ private fun DailyGoalDialog(
                 if (canUnlockMore) {
                     FilledTonalButton(
                         onClick = onUnlockMore,
-                        enabled = isRewardedReady,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             when {
                                 isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
                                 isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                                else -> localizedText("جاري تجهيز إعلان المكافأة...", "Preparing reward ad...")
+                                else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
                             }
                         )
                     }
-                } else {
-                    Text(
-                        text = localizedText("وصلت إلى الحد الأقصى اليومي: 100 بطاقة", "You reached the maximum daily limit: 100 cards"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
                 }
             }
         },
@@ -958,4 +951,3 @@ private fun LanguageOptionRow(
 private fun languageLabelRes(language: String): Int {
     return if (language == "en") R.string.language_en else R.string.language_ar
 }
-
