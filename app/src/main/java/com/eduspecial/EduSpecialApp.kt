@@ -61,16 +61,7 @@ class EduSpecialApp : Application(), Configuration.Provider {
             ).apply {
                 description = getString(R.string.notification_channel_description)
             }
-            val rewardedAdChannel = NotificationChannel(
-                NotificationScheduler.REWARDED_AD_CHANNEL_ID,
-                getString(R.string.rewarded_ad_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = getString(R.string.rewarded_ad_channel_description)
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannels(
-                listOf(reminderChannel, rewardedAdChannel)
-            )
+            getSystemService(NotificationManager::class.java).createNotificationChannel(reminderChannel)
         }
     }
 }

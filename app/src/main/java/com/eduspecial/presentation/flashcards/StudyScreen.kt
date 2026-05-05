@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.eduspecial.core.ads.AdManager
 import com.eduspecial.domain.model.Flashcard
 import com.eduspecial.domain.model.MediaType
 import com.eduspecial.domain.model.SRSResult
@@ -42,7 +41,6 @@ import com.eduspecial.presentation.common.LottieEmptyState
 import com.eduspecial.presentation.common.MediaPlayerView
 import com.eduspecial.presentation.theme.EduThemeExtras
 import com.eduspecial.utils.InAppReviewManager
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,44 +51,6 @@ fun StudyScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val activity = context as? android.app.Activity
-    val scope = rememberCoroutineScope()
-    val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
-    val rewardedReady by adManager.rewardedReady.collectAsState()
-    val rewardedLoading by adManager.rewardedLoading.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    fun requestDailyGoalUnlock() {
-        val currentActivity = activity
-        if (currentActivity == null) {
-            scope.launch {
-                snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now"))
-            }
-            return
-        }
-
-        adManager.showRewardedUnlockSequence(
-            activity = currentActivity,
-            onProgress = { _, _ ->
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        localizedText(context, "تمت مشاهدة إعلان المكافأة", "Reward ad watched")
-                    )
-                }
-            },
-            onRewardEarned = {
-                scope.launch {
-                    if (viewModel.unlockDailyGoalStep()) {
-                        snackbarHostState.showSnackbar(localizedText(context, "تم فتح 10 بطاقات إضافية اليوم", "Unlocked 10 extra cards today"))
-                    }
-                }
-            },
-            onUnavailable = {
-                scope.launch {
-                    snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again."))
-                }
-            }
-        )
-    }
 
     // Trigger in-app review when session completes with meaningful progress
     val sessionComplete = uiState.currentCard == null && uiState.reviewedThisSession > 0
@@ -105,12 +65,7 @@ fun StudyScreen(
         onDispose { viewModel.stopSpeaking() }
     }
 
-    LaunchedEffect(Unit) {
-        adManager.preloadRewarded()
-    }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -185,13 +140,6 @@ fun StudyScreen(
             if (uiState.selectedGroup == null) {
                 GroupSelectionPlaceholder(
                     groups = uiState.availableGroups,
-                    remainingToday = uiState.remainingToday,
-                    dailyGoal = uiState.dailyGoal,
-                    dailyGoalCap = uiState.dailyGoalCap,
-                    canUnlockMore = uiState.canUnlockDailyGoal,
-                    isRewardedReady = rewardedReady,
-                    isRewardedLoading = rewardedLoading,
-                    onUnlockMore = { requestDailyGoalUnlock() },
                     onSelectGroup = viewModel::selectGroup
                 )
             } else if (uiState.currentCard != null) {
@@ -201,22 +149,6 @@ fun StudyScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(12.dp))
-                AnimatedVisibility(
-                    visible = !uiState.isFlipped && uiState.remainingToday <= 5,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Column {
-                        LowQuotaNotice(
-                            remainingToday = uiState.remainingToday,
-                            canUnlockMore = uiState.canUnlockDailyGoal,
-                            isRewardedReady = rewardedReady,
-                            isRewardedLoading = rewardedLoading,
-                            onUnlockMore = { requestDailyGoalUnlock() }
-                        )
-                        Spacer(Modifier.height(10.dp))
-                    }
-                }
                 Box(
                     modifier = Modifier
                         .weight(1f, fill = true)
@@ -274,67 +206,8 @@ fun StudyScreen(
 }
 
 @Composable
-private fun DailyQuotaCard(
-    remainingToday: Int,
-    dailyGoal: Int,
-    dailyGoalCap: Int,
-    canUnlockMore: Boolean,
-    isRewardedReady: Boolean,
-    isRewardedLoading: Boolean,
-    onUnlockMore: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = localizedText("مراجعتك اليوم", "Today's review"),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = localizedText("المتبقي لك اليوم: $remainingToday بطاقة من أصل $dailyGoal", "$remainingToday cards left today out of $dailyGoal"),
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                text = localizedText("الحد المفتوح الآن: $dailyGoalCap بطاقة يوميًا", "Current unlocked cap: $dailyGoalCap cards per day"),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (canUnlockMore) {
-                FilledTonalButton(
-                    onClick = onUnlockMore,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        when {
-                            isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
-                            isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                            else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-@Composable
 private fun GroupSelectionPlaceholder(
     groups: List<String>,
-    remainingToday: Int,
-    dailyGoal: Int,
-    dailyGoalCap: Int,
-    canUnlockMore: Boolean,
-    isRewardedReady: Boolean,
-    isRewardedLoading: Boolean,
-    onUnlockMore: () -> Unit,
     onSelectGroup: (String) -> Unit
 ) {
     Column(
@@ -350,20 +223,10 @@ private fun GroupSelectionPlaceholder(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = localizedText("ستراجع فقط البطاقات المستحقة داخل هذه المجموعة، وضمن حدك اليومي الحالي.", "You will review only the due cards in this group, within your current daily limit."),
+            text = localizedText("ستراجع كل البطاقات المستحقة داخل هذه المجموعة بدون حد يومي مؤقتًا.", "You will review all due cards in this group with no temporary daily cap."),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(16.dp))
-        DailyQuotaCard(
-            remainingToday = remainingToday,
-            dailyGoal = dailyGoal,
-            dailyGoalCap = dailyGoalCap,
-            canUnlockMore = canUnlockMore,
-            isRewardedReady = isRewardedReady,
-            isRewardedLoading = isRewardedLoading,
-            onUnlockMore = onUnlockMore
         )
         Spacer(Modifier.height(20.dp))
         if (groups.isEmpty()) {
@@ -379,59 +242,6 @@ private fun GroupSelectionPlaceholder(
                     ElevatedAssistChip(
                         onClick = { onSelectGroup(group) },
                         label = { Text(group) }
-                    )
-                }
-            }
-        }
-    }
-}
-@Composable
-private fun LowQuotaNotice(
-    remainingToday: Int,
-    canUnlockMore: Boolean,
-    isRewardedReady: Boolean,
-    isRewardedLoading: Boolean,
-    onUnlockMore: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.72f)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Icon(
-                Icons.Default.Notifications,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = localizedText("المتبقي لك اليوم: $remainingToday بطاقات", "$remainingToday cards left today"),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = localizedText("اقتربت من نهاية حصتك اليومية.", "You are close to your daily limit."),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (canUnlockMore) {
-                TextButton(
-                    onClick = onUnlockMore
-                ) {
-                    Text(
-                        when {
-                            isRewardedReady -> localizedText("+10 بعد إعلان", "+10 after an ad")
-                            isRewardedLoading -> localizedText("تحميل الإعلان", "Loading ad")
-                            else -> localizedText("جهز الإعلان", "Prepare ad")
-                        }
                     )
                 }
             }

@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.eduspecial.core.user.DailyCreationQuotaState
-import com.eduspecial.core.user.StudyQuotaManager
 import com.eduspecial.data.repository.BookmarkRepository
 import com.eduspecial.data.repository.FlashcardPagingRepository
 import com.eduspecial.data.repository.FlashcardRepository
@@ -22,9 +20,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.io.File
-import java.time.ZoneId
 import javax.inject.Inject
-import kotlin.math.max
 @Immutable
 data class FlashcardsUiState(
     val newTerm: String = "",
@@ -36,11 +32,7 @@ data class FlashcardsUiState(
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val undoFlashcard: Flashcard? = null,  // card pending undo-delete
-    val dailyCreatedCount: Int = 0,
-    val dailyCreationCap: Int = 20,
-    val dailyCreationRemaining: Int = 20,
-    val showCreationUnlockPrompt: Boolean = false
+    val undoFlashcard: Flashcard? = null  // card pending undo-delete
 )
 
 enum class FlashcardAudioUiState {
@@ -58,8 +50,7 @@ class FlashcardsViewModel @Inject constructor(
     private val editFlashcardUseCase: EditFlashcardUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase,
     private val pagingRepository: FlashcardPagingRepository,
-    val ttsManager: com.eduspecial.utils.TtsManager,
-    private val studyQuotaManager: StudyQuotaManager
+    val ttsManager: com.eduspecial.utils.TtsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FlashcardsUiState())
@@ -82,16 +73,6 @@ class FlashcardsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             repository.getAllFlashcards().collect { cards ->
-                val currentUserId = authRepository.getCurrentUserId().orEmpty()
-                val createdToday = if (currentUserId.isBlank()) {
-                    0
-                } else {
-                    cards.count { card ->
-                        card.contributor == currentUserId &&
-                            card.createdAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() ==
-                            java.time.LocalDate.now()
-                    }
-                }
                 _audioUiStateById.update { states ->
                     states.filterKeys { id ->
                         cards.any { card -> card.id == id }
@@ -100,7 +81,6 @@ class FlashcardsViewModel @Inject constructor(
                 _audioCountdownById.update { countdowns ->
                     countdowns.filterKeys { id -> cards.any { card -> card.id == id } }
                 }
-                applyCreationQuota(studyQuotaManager.getDailyCreationQuotaState(createdToday))
             }
         }
     }
@@ -184,18 +164,6 @@ class FlashcardsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val quotaState = studyQuotaManager.getDailyCreationQuotaState(_uiState.value.dailyCreatedCount)
-            if (quotaState.requiresUnlock) {
-                applyCreationQuota(quotaState)
-                _uiState.update {
-                    it.copy(
-                        isSubmitting = false,
-                        showCreationUnlockPrompt = true,
-                        error = null
-                    )
-                }
-                return@launch
-            }
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             val result = repository.createFlashcard(
                 term = state.newTerm.trim(),
@@ -300,17 +268,6 @@ class FlashcardsViewModel @Inject constructor(
         _uiState.update { it.copy(undoFlashcard = null) }
     }
 
-    fun dismissCreationUnlockPrompt() {
-        _uiState.update { it.copy(showCreationUnlockPrompt = false) }
-    }
-
-    suspend fun unlockDailyCreationStep(): Boolean {
-        val nextState = studyQuotaManager.unlockDailyCreationStep(_uiState.value.dailyCreatedCount)
-        applyCreationQuota(nextState)
-        _uiState.update { it.copy(showCreationUnlockPrompt = false) }
-        return true
-    }
-
     suspend fun importFromCsv(content: String): Result<Int> {
         return runCatching {
             val contributorId = authRepository.getCurrentUserId().orEmpty()
@@ -393,16 +350,6 @@ class FlashcardsViewModel @Inject constructor(
 
     private fun containsArabicCharacters(text: String): Boolean {
         return text.any { it in '\u0600'..'\u06FF' || it in '\u0750'..'\u077F' || it in '\u08A0'..'\u08FF' }
-    }
-
-    private fun applyCreationQuota(state: DailyCreationQuotaState) {
-        _uiState.update {
-            it.copy(
-                dailyCreatedCount = state.createdToday,
-                dailyCreationCap = state.unlockedCap,
-                dailyCreationRemaining = max(state.remaining, 0)
-            )
-        }
     }
 
     private fun parseCsv(content: String): List<Flashcard> {

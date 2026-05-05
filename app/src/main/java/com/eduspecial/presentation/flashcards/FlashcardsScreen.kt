@@ -34,10 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.eduspecial.core.ads.AdManager
 import com.eduspecial.core.ads.AdFeedItem
 import com.eduspecial.core.ads.AdInsertionStrategy
-import com.eduspecial.core.ads.findActivity
 import com.eduspecial.domain.model.Flashcard
 import com.eduspecial.domain.model.FlashcardCategory
 import com.eduspecial.domain.model.MediaType
@@ -94,42 +92,11 @@ fun FlashcardsScreen(    navController: NavController,
     val addTermA11y = localizedText("إضافة مصطلح جديد", "Add a new term")
     val addSharedTermA11y = localizedText("إضافة مصطلح جديد للقاعدة المشتركة", "Add a new shared term")
     val scope = rememberCoroutineScope()
-    val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
-    val rewardedReady by adManager.rewardedReady.collectAsState()
-    val rewardedLoading by adManager.rewardedLoading.collectAsState()
     var showLibraryMenu by remember { mutableStateOf(false) }
     var pendingExportGroup by remember { mutableStateOf<String?>(null) }
     var confirmedExportGroup by remember { mutableStateOf<String?>(null) }
     var pendingExportFilename by remember { mutableStateOf<String?>(null) }
     var showExportGroupPicker by remember { mutableStateOf(false) }
-
-    fun requestCreationUnlock() {
-        val activity = context.findActivity()
-        if (activity == null) {
-            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
-            return
-        }
-
-        adManager.showRewardedUnlockSequence(
-            activity = activity,
-            onProgress = { _, _ ->
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        localizedText(context, "تمت مشاهدة إعلان المكافأة", "Reward ad watched")
-                    )
-                }
-            },
-            onRewardEarned = {
-                scope.launch {
-                    viewModel.unlockDailyCreationStep()
-                    snackbarHostState.showSnackbar(localizedText(context, "تم فتح 15 بطاقة إضافية لليوم", "Unlocked 15 extra cards for today"))
-                }
-            },
-            onUnavailable = {
-                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again.")) }
-            }
-        )
-    }
 
     val importCsvLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -190,10 +157,6 @@ fun FlashcardsScreen(    navController: NavController,
         if (showAddDialogOnStart) {
             showAddDialog = true
         }
-    }
-
-    LaunchedEffect(Unit) {
-        adManager.preloadRewarded()
     }
 
     // Handle undo snackbar
@@ -431,8 +394,6 @@ fun FlashcardsScreen(    navController: NavController,
         AddFlashcardDialog(
             uiState = uiState,
             groupNames = groupNames,
-            isRewardedReady = rewardedReady,
-            isRewardedLoading = rewardedLoading,
             onTermChange = viewModel::onTermChange,
             onDefinitionChange = viewModel::onDefinitionChange,
             onGroupNameChange = viewModel::onGroupNameChange,
@@ -440,11 +401,9 @@ fun FlashcardsScreen(    navController: NavController,
                 viewModel.submitFlashcardWithMedia(mediaUrl, mediaType)
                 // Dialog closes automatically when isSubmitting goes false (see LaunchedEffect below)
             },
-            onUnlockMore = { requestCreationUnlock() },
             onDismiss = {
                 showAddDialog = false
                 viewModel.clearError()
-                viewModel.dismissCreationUnlockPrompt()
             }
         )
         // Close dialog once submission completes successfully (isSubmitting: true â†’ false)
@@ -966,13 +925,10 @@ fun FlashcardItem(
 private fun AddFlashcardDialog(
     uiState: FlashcardsUiState,
     groupNames: List<String>,
-    isRewardedReady: Boolean,
-    isRewardedLoading: Boolean,
     onTermChange: (String) -> Unit,
     onDefinitionChange: (String) -> Unit,
     onGroupNameChange: (String) -> Unit,
     onSubmit: (mediaUrl: String?, mediaType: MediaType) -> Unit,
-    onUnlockMore: () -> Unit,
     onDismiss: () -> Unit,
     mediaUploadViewModel: MediaUploadViewModel = hiltViewModel()
 ) {
@@ -1089,44 +1045,6 @@ private fun AddFlashcardDialog(
                         )
                         TextButton(onClick = { mediaUploadViewModel.clearError() }) {
                             Text(localizedText("إغلاق", "Close"), style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-
-                Text(
-                    text = localizedText("المتاح لك اليوم: ${uiState.dailyCreationRemaining} من ${uiState.dailyCreationCap} بطاقة جديدة", "Available today: ${uiState.dailyCreationRemaining} of ${uiState.dailyCreationCap} new cards"),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                if (uiState.showCreationUnlockPrompt) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = localizedText("وصلت إلى الحد اليومي للإضافات الجديدة: ${uiState.dailyCreationCap} بطاقة.", "You reached the daily limit for new additions: ${uiState.dailyCreationCap} cards."),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            FilledTonalButton(
-                                onClick = onUnlockMore,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    when {
-                                        isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من بطاقات الإضافة (+15)", "Watch an ad to add more creation cards (+15)")
-                                        isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                                        else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
-                                    }
-                                )
-                            }
                         }
                     }
                 }

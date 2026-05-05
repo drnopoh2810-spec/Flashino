@@ -4,8 +4,6 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.eduspecial.core.user.DailyGoalQuotaState
-import com.eduspecial.core.user.StudyQuotaManager
 import com.eduspecial.core.user.VerificationRules
 import com.eduspecial.data.repository.AuthRepository
 import com.eduspecial.data.repository.FlashcardRepository
@@ -40,9 +38,6 @@ data class ProfileUiState(
     val isDarkMode: Boolean = false,
     val notificationsEnabled: Boolean = true,
     val dailyGoal: Int = 20,
-    val dailyGoalCap: Int = 20,
-    val canUnlockDailyGoal: Boolean = true,
-    val dailyGoalUnlocksUsedToday: Int = 0,
     val isSignedOut: Boolean = false,
     val isVerified: Boolean = false,
     val avatarUrl: String? = null,
@@ -65,8 +60,7 @@ class ProfileViewModel @Inject constructor(
     private val updateDisplayNameUseCase: UpdateDisplayNameUseCase,
     private val uploadAvatarUseCase: UploadAvatarUseCase,
     private val scheduleStudyReminderUseCase: ScheduleStudyReminderUseCase,
-    private val notificationRepository: NotificationRepository,
-    private val studyQuotaManager: StudyQuotaManager
+    private val notificationRepository: NotificationRepository
 ) : ViewModel() {
     companion object {
         private const val TAG = "ProfileViewModel"
@@ -137,7 +131,6 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             fetchProfileFromApi()
-            refreshDailyGoalQuota()
             refreshVerificationStatus()
         }
     }
@@ -246,16 +239,7 @@ class ProfileViewModel @Inject constructor(
         _uiState.update { it.copy(isSignedOut = true) }
     }
 
-    fun setDailyGoal(goal: Int) = viewModelScope.launch {
-        applyDailyGoalQuota(studyQuotaManager.setSelectedDailyGoal(goal))
-    }
-
-    suspend fun unlockDailyGoalStep(): Boolean {
-        val state = studyQuotaManager.getDailyGoalQuotaState()
-        if (!state.canUnlockMore) return false
-        applyDailyGoalQuota(studyQuotaManager.unlockDailyGoalStep())
-        return true
-    }
+    fun setDailyGoal(goal: Int) = viewModelScope.launch { prefs.setDailyGoal(goal.coerceAtLeast(1)) }
 
     fun toggleDarkMode(enabled: Boolean) = viewModelScope.launch { prefs.setDarkTheme(enabled) }
 
@@ -281,21 +265,6 @@ class ProfileViewModel @Inject constructor(
                 }
             }
         } catch (_: Exception) {
-        }
-    }
-
-    private suspend fun refreshDailyGoalQuota() {
-        applyDailyGoalQuota(studyQuotaManager.getDailyGoalQuotaState())
-    }
-
-    private fun applyDailyGoalQuota(state: DailyGoalQuotaState) {
-        _uiState.update {
-            it.copy(
-                dailyGoal = state.selectedGoal,
-                dailyGoalCap = state.unlockedCap,
-                canUnlockDailyGoal = state.canUnlockMore,
-                dailyGoalUnlocksUsedToday = state.unlocksUsedToday
-            )
         }
     }
 

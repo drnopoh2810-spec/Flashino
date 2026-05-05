@@ -24,7 +24,6 @@ class NotificationScheduler @Inject constructor(
     companion object {
         const val REMINDER_WORK_NAME = "EduSpecial_StudyReminder"
         const val CHANNEL_ID = "study_reminder_channel"
-        const val REWARDED_AD_CHANNEL_ID = "rewarded_ad_channel"
     }
 
     fun schedule(enabled: Boolean, reminderTimeMillis: Long) {
@@ -61,15 +60,6 @@ class NotificationScheduler @Inject constructor(
             notificationId = 1001,
             title = context.getString(R.string.study_reminder_title),
             body = body
-        )
-    }
-
-    fun showRewardedAdAvailable() {
-        showNotification(
-            notificationId = 1003,
-            title = context.getString(R.string.rewarded_ad_available_title),
-            body = context.getString(R.string.rewarded_ad_available_body),
-            channelId = REWARDED_AD_CHANNEL_ID
         )
     }
 

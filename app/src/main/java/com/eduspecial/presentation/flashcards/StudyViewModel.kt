@@ -1,8 +1,6 @@
 package com.eduspecial.presentation.flashcards
 
 import androidx.compose.runtime.Immutable
-import com.eduspecial.core.user.StudyQuotaManager
-import com.eduspecial.data.repository.AnalyticsRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eduspecial.data.repository.FlashcardRepository
@@ -19,21 +17,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.max
 
 @Immutable
 data class StudyUiState(
     val studyQueue: List<Flashcard> = emptyList(),
     val availableGroups: List<String> = emptyList(),
     val selectedGroup: String? = null,
-    val dailyGoal: Int = 20,
-    val dailyGoalCap: Int = 20,
-    val canUnlockDailyGoal: Boolean = true,
-    val remainingToday: Int = 20,
     val currentIndex: Int = 0,
     val isFlipped: Boolean = false,
     val masteredThisSession: Int = 0,
@@ -50,9 +42,7 @@ data class StudyUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class StudyViewModel @Inject constructor(
     private val repository: FlashcardRepository,
-    private val analyticsRepository: AnalyticsRepository,
     private val recordReviewUseCase: RecordReviewUseCase,
-    private val studyQuotaManager: StudyQuotaManager,
     val ttsManager: TtsManager
 ) : ViewModel() {
 
@@ -91,17 +81,6 @@ class StudyViewModel @Inject constructor(
         loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val selectedGroup = _uiState.value.selectedGroup
-            val quotaState = studyQuotaManager.getDailyGoalQuotaState()
-            val reviewedToday = analyticsRepository.getTodayReviewCount()
-            val remainingToday = max(quotaState.selectedGoal - reviewedToday, 0)
-            _uiState.update {
-                it.copy(
-                    dailyGoal = quotaState.selectedGoal,
-                    dailyGoalCap = quotaState.unlockedCap,
-                    canUnlockDailyGoal = quotaState.canUnlockMore,
-                    remainingToday = remainingToday
-                )
-            }
             if (selectedGroup.isNullOrBlank()) {
                 _uiState.update {
                     it.copy(
@@ -114,16 +93,15 @@ class StudyViewModel @Inject constructor(
                 return@launch
             }
             repository.getStudyQueue(listOf(selectedGroup)).take(1).collect { queue ->
-                val dueCards = queue.take(remainingToday)
                 _uiState.update {
                     it.copy(
-                        studyQueue = dueCards,
+                        studyQueue = queue,
                         currentIndex = 0,
                         isFlipped = false,
                         isLoading = false
                     )
                 }
-                dueCards.firstOrNull()?.let {
+                queue.firstOrNull()?.let {
                     if (_uiState.value.ttsEnabled) speakCurrentTerm()
                 }
             }
@@ -133,14 +111,6 @@ class StudyViewModel @Inject constructor(
     fun selectGroup(groupName: String) {
         _uiState.update { current -> current.copy(selectedGroup = groupName) }
         loadStudyQueue()
-    }
-
-    suspend fun unlockDailyGoalStep(): Boolean {
-        val state = studyQuotaManager.getDailyGoalQuotaState()
-        if (!state.canUnlockMore) return false
-        studyQuotaManager.unlockDailyGoalStep()
-        loadStudyQueue()
-        return true
     }
 
     fun speakCurrentTerm() {

@@ -207,8 +207,4 @@
     <string name="study_reminder_title">حان وقت المراجعة!</string>
     <string name="study_reminder_due_body">لديك %1$d بطاقة للمراجعة اليوم</string>
     <string name="study_reminder_generic_body">حافظ على تقدمك وراجع بطاقاتك اليوم</string>
-    <string name="rewarded_ad_channel_name">إعلانات المكافأة</string>
-    <string name="rewarded_ad_channel_description">تنبيه عند توفر إعلان مكافأة اختياري</string>
-    <string name="rewarded_ad_available_title">إعلان مكافأة متاح الآن</string>
-    <string name="rewarded_ad_available_body">افتح فلاشينو عند رغبتك لمشاهدة إعلان مكافأة وزيادة حدك اليومي.</string>
 </resources>

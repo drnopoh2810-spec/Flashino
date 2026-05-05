@@ -35,8 +35,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.eduspecial.R
-import com.eduspecial.core.ads.AdManager
-import com.eduspecial.core.ads.findActivity
 import com.eduspecial.presentation.common.BottomAwareSnackbarHost
 import com.eduspecial.presentation.common.localizedText
 import com.eduspecial.presentation.common.RafiqBrandMark
@@ -60,9 +58,6 @@ fun ProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
-    val adManager = remember(context.applicationContext) { AdManager.getInstance(context) }
-    val rewardedReady by adManager.rewardedReady.collectAsState()
-    val rewardedLoading by adManager.rewardedLoading.collectAsState()
     val updateState by updateViewModel.state.collectAsState()
     var manualUpdateCheckRequested by remember { mutableStateOf(false) }
     val updateFlowActive = updateState is UpdateState.Checking ||
@@ -77,10 +72,6 @@ fun ProfileScreen(
                 popUpTo(0) { inclusive = true }
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        adManager.preloadRewarded()
     }
 
     // Show avatar error snackbar
@@ -116,35 +107,6 @@ fun ProfileScreen(
     var showGoalDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-
-    fun requestDailyGoalUnlock() {
-        val activity = context.findActivity()
-        if (activity == null) {
-            scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر فتح إعلان المكافأة الآن", "Unable to open the rewarded ad right now")) }
-            return
-        }
-
-        adManager.showRewardedUnlockSequence(
-            activity = activity,
-            onProgress = { _, _ ->
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        localizedText(context, "تمت مشاهدة إعلان المكافأة", "Reward ad watched")
-                    )
-                }
-            },
-            onRewardEarned = {
-                scope.launch {
-                    if (viewModel.unlockDailyGoalStep()) {
-                        snackbarHostState.showSnackbar(localizedText(context, "تم فتح 10 بطاقات إضافية اليوم", "Unlocked 10 extra cards today"))
-                    }
-                }
-            },
-            onUnavailable = {
-                scope.launch { snackbarHostState.showSnackbar(localizedText(context, "تعذر تحميل إعلان المكافأة الآن. سيحاول التطبيق تجهيزه مرة أخرى.", "The reward ad could not load right now. The app will try preparing it again.")) }
-            }
-        )
-    }
 
     // Password change feedback
     LaunchedEffect(uiState.passwordSuccess) {
@@ -396,15 +358,10 @@ fun ProfileScreen(
     if (showGoalDialog) {
         DailyGoalDialog(
             currentGoal = uiState.dailyGoal,
-            maxUnlockedGoal = uiState.dailyGoalCap,
-            canUnlockMore = uiState.canUnlockDailyGoal,
-            isRewardedReady = rewardedReady,
-            isRewardedLoading = rewardedLoading,
             onConfirm = { goal ->
                 viewModel.setDailyGoal(goal)
                 showGoalDialog = false
             },
-            onUnlockMore = { requestDailyGoalUnlock() },
             onDismiss = { showGoalDialog = false }
         )
     }
@@ -674,16 +631,11 @@ private fun SettingsItem(
 @Composable
 private fun DailyGoalDialog(
     currentGoal: Int,
-    maxUnlockedGoal: Int,
-    canUnlockMore: Boolean,
-    isRewardedReady: Boolean,
-    isRewardedLoading: Boolean,
     onConfirm: (Int) -> Unit,
-    onUnlockMore: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var goal by remember { mutableIntStateOf(currentGoal) }
-    val options = (20..maxUnlockedGoal step 10).toList()
+    val options = listOf(20, 30, 40, 50, 75, 100, 150, 200)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -710,26 +662,11 @@ private fun DailyGoalDialog(
                         Text(localizedText("$option بطاقة يوميًا", "$option cards per day"))
                     }
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
                 Text(
-                    text = localizedText("الحد المفتوح لك الآن: $maxUnlockedGoal بطاقة يوميًا", "Current unlocked cap: $maxUnlockedGoal cards per day"),
+                    text = localizedText("الهدف اليومي للتقدم والتذكير فقط، ولا يمنع فتح المراجعة.", "The daily goal is only for progress and reminders; it does not block study."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (canUnlockMore) {
-                    FilledTonalButton(
-                        onClick = onUnlockMore,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            when {
-                                isRewardedReady -> localizedText("شاهد إعلانًا لتزيد من البطاقات (+10)", "Watch an ad to add more cards (+10)")
-                                isRewardedLoading -> localizedText("جاري تحميل إعلان المكافأة...", "Loading reward ad...")
-                                else -> localizedText("اضغط لتجهيز إعلان المكافأة", "Tap to prepare reward ad")
-                            }
-                        )
-                    }
-                }
             }
         },
         confirmButton = {
