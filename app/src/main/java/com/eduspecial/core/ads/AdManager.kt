@@ -61,14 +61,22 @@ class AdManager private constructor(
 
     @MainThread
     fun initialize() {
-        if (isInitialized || AdMobConfig.appId.isBlank()) return
-        MobileAds.initialize(appContext)
-        isInitialized = true
+        if (!initializeMobileAdsIfNeeded()) return
         preloadRewarded()
     }
 
     @MainThread
+    private fun initializeMobileAdsIfNeeded(): Boolean {
+        if (isInitialized) return true
+        if (AdMobConfig.appId.isBlank()) return false
+        MobileAds.initialize(appContext)
+        isInitialized = true
+        return true
+    }
+
+    @MainThread
     fun preloadRewarded() {
+        if (!initializeMobileAdsIfNeeded()) return
         if (!AdMobConfig.isRewardedEnabled) {
             _rewardedReady.value = false
             _rewardedLoading.value = false

@@ -4,27 +4,22 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.work.Configuration
-import com.eduspecial.core.ads.AdManager
 import com.eduspecial.utils.NotificationScheduler
 import com.eduspecial.utils.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Application bootstrap - Updated to ensure Config is loaded before other services.
+ * Application bootstrap kept intentionally light so the first screen can draw quickly.
  */
 @HiltAndroidApp
 class EduSpecialApp : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: androidx.work.WorkerFactory
-    @Inject lateinit var configRepository: com.eduspecial.data.repository.ConfigRepository
-    @Inject lateinit var algoliaSearchService: com.eduspecial.data.remote.search.AlgoliaSearchService
-    @Inject lateinit var notificationRepository: com.eduspecial.data.repository.NotificationRepository
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
@@ -35,20 +30,9 @@ class EduSpecialApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        AdManager.getInstance(this).initialize()
-
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val success = configRepository.initializeConfig()
-                Log.d("EduSpecialApp", "Remote Config Initialized: $success")
-
-                algoliaSearchService.initialize()
-            } catch (e: Exception) {
-                Log.e("EduSpecialApp", "Initialization error: ${e.message}")
-            }
-        }
-
-        SyncWorker.schedulePeriodicSync(this)
+        Handler(Looper.getMainLooper()).postDelayed({
+            SyncWorker.schedulePeriodicSync(this)
+        }, 3_000)
         createNotificationChannels()
     }
 

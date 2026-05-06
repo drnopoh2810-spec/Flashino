@@ -24,6 +24,8 @@ import kotlinx.serialization.json.long
 import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Singleton
 class AlgoliaSearchService @Inject constructor(
@@ -38,6 +40,7 @@ class AlgoliaSearchService @Inject constructor(
     
     private var client: ClientSearch? = null
     private var isInitialized = false
+    private val initializationMutex = Mutex()
     
     suspend fun initialize(): Boolean {
         return withContext(Dispatchers.IO) {
@@ -64,13 +67,20 @@ class AlgoliaSearchService @Inject constructor(
             }
         }
     }
+
+    private suspend fun ensureInitialized(): Boolean {
+        if (isInitialized && client != null) return true
+        return initializationMutex.withLock {
+            if (isInitialized && client != null) true else initialize()
+        }
+    }
     
     suspend fun searchFlashcards(
         query: String,
         category: FlashcardCategory? = null,
         limit: Int = 20
     ): Result<List<Flashcard>> {
-        if (!isInitialized || client == null) {
+        if (!ensureInitialized()) {
             Log.w(TAG, "🔍 Algolia not initialized, returning empty results")
             return Result.success(emptyList())
         }
@@ -114,7 +124,7 @@ class AlgoliaSearchService @Inject constructor(
         unansweredOnly: Boolean = false,
         limit: Int = 20
     ): Result<List<QAQuestion>> {
-        if (!isInitialized || client == null) {
+        if (!ensureInitialized()) {
             Log.w(TAG, "🔍 Algolia not initialized, returning empty results")
             return Result.success(emptyList())
         }
@@ -156,7 +166,7 @@ class AlgoliaSearchService @Inject constructor(
     }
     
     suspend fun getSuggestions(query: String, limit: Int = 5): List<String> {
-        if (!isInitialized || client == null || query.length < 2) {
+        if (query.length < 2 || !ensureInitialized()) {
             return emptyList()
         }
         
